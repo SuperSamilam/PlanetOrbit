@@ -8,14 +8,16 @@ using UnityEngine.Networking;
 
 public class Placement : MonoBehaviour
 {
+    [SerializeField] Transform cameraTransform;
     [SerializeField] GameObject placeObject;
     [SerializeField] GameObject hand;
     [SerializeField] LayerMask mask;
+    [SerializeField] LayerMask water;
     [SerializeField] LayerMask buildingMask;
     [SerializeField] Material canPlaceMat;
     [SerializeField] Material cantPlaceMat;
 
-    int rotation = 0;
+    float rotation = 0;
     GameObject prefab;
     GameObject country;
     Ray ray;
@@ -39,17 +41,12 @@ public class Placement : MonoBehaviour
     }
     void Update()
     {
-        // if (Input.GetKey(KeyCode.R))
-        // {
-        //     rotation++;
-        //     prefab.transform.up = Vector3.up;
-        //     prefab.transform.rotation = Quaternion.Euler(new Vector3(prefab.transform.rotation.x, rotation, prefab.transform.rotation.z));
-        // }
         ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         if (Physics.Raycast(ray, out hit, Mathf.Infinity, ~mask))
         {
             hand.transform.position = hit.point;
             prefab.transform.up = hit.normal;
+            prefab.transform.Rotate(new Vector3(0,1,0), rotation);
             prefab.transform.GetComponent<MeshRenderer>().material = canPlaceMat;
             if (hit.transform.tag != "Country")
             {
@@ -66,22 +63,57 @@ public class Placement : MonoBehaviour
         }
 
         BoxCollider buildingCollider = prefab.GetComponent<BoxCollider>();
-        if (Physics.OverlapBox(prefab.transform.position, buildingCollider.size/2, prefab.transform.rotation, buildingMask).Length != 0)
+        if (Physics.OverlapBox(prefab.transform.position, buildingCollider.size / 2, prefab.transform.rotation, buildingMask).Length != 0)
         {
-            Debug.Log("colliding");
             canBuild = false;
             prefab.transform.GetComponent<MeshRenderer>().material = cantPlaceMat;
+            return;
         }
         else
             canBuild = true;
 
+        if (Input.GetKey(KeyCode.R))
+        {
+            rotation += 0.5f;
+        }
 
-        Debug.Log("Canbuild: " + canBuild);
+        Ray sideRay;
+
+        sideRay = new Ray(prefab.transform.position, prefab.transform.right);
+        if (Physics.Raycast(sideRay, 5, water))
+        {
+            canBuild = false;
+            prefab.transform.GetComponent<MeshRenderer>().material = cantPlaceMat;
+            return;
+        }
+        sideRay = new Ray(prefab.transform.position, prefab.transform.right * -1);
+        if (Physics.Raycast(sideRay, 5, water))
+        {
+            canBuild = false;
+            prefab.transform.GetComponent<MeshRenderer>().material = cantPlaceMat;
+            return;
+        }
+        sideRay = new Ray(prefab.transform.position, prefab.transform.forward);
+        if (Physics.Raycast(sideRay, 5, water))
+        {
+            canBuild = false;
+            prefab.transform.GetComponent<MeshRenderer>().material = cantPlaceMat;
+            return;
+        }
+        sideRay = new Ray(prefab.transform.position, prefab.transform.forward * -1);
+        if (Physics.Raycast(sideRay, 5, water))
+        {
+            canBuild = false;
+            prefab.transform.GetComponent<MeshRenderer>().material = cantPlaceMat;
+            return;
+        }
+
 
         if (canBuild && Input.GetMouseButtonDown(0))
         {
             GameObject obj = Instantiate(placeObject, prefab.transform.position, prefab.transform.rotation);
             obj.layer = LayerMask.NameToLayer("Building");
         }
+
     }
 }
