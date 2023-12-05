@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -12,12 +13,12 @@ public class RoadPlacement : MonoBehaviour
     RaycastHit hit;
     Vector3 firstPos;
     bool firstClick;
-    List<Vector3> list = new List<Vector3>();
+    List<(Vector3, Vector3)> list = new List<(Vector3, Vector3)>();
 
     void Update()
     {
         ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-        if (Physics.Raycast(ray, out hit, Mathf.Infinity, ~mask))
+        if (Physics.Raycast(ray, out hit, Mathf.Infinity, mask))
         {
             if (!firstClick && Input.GetMouseButtonDown(0))
             {
@@ -39,17 +40,44 @@ public class RoadPlacement : MonoBehaviour
                 float archLenght = angle / 360 * 2 * Mathf.PI * Vector3.Distance(Vector3.zero, firstPos);
                 int numberOfVertices = Mathf.CeilToInt(archLenght / distanceBetweenRoadVertices);
 
-                Vector3 dir = (firstPos-hit.point).normalized;
+
 
                 for (int i = 0; i <= numberOfVertices; i++)
                 {
-                    Vector3 mainPoint = Vector3.Slerp(firstPos, hit.point, i/(float)numberOfVertices);
-                    Vector3 right = Vector3.Cross(mainPoint.normalized, new Vector3(0,1,0));
-                    Vector3 left = -right;
+                    Vector3 mainPoint = Vector3.Slerp(firstPos, hit.point, i / (float)numberOfVertices);
 
-                    list.Add(Vector3.Slerp(firstPos, hit.point, i/(float)numberOfVertices));
-                    list.Add(right);
-                    list.Add(left);
+                    Ray roadRay = Camera.main.ScreenPointToRay(mainPoint*2);
+                    RaycastHit roadHit;
+                    if (Physics.Raycast(roadRay, out roadHit, Mathf.Infinity, mask))
+                    {
+                        Vector3 pos = roadHit.point;
+                        Vector3 rot = roadHit.normal;
+                        list.Add((pos, rot));
+                    }
+
+
+                    // Vector3 zeroPoint = Vector3.zero;
+
+                    // Vector3 relativeProd = Vector3.Cross(mainPoint, Vector3.up).normalized;
+
+
+                    // float normal = Vector3.Angle(mainPoint, zeroPoint);
+                    // Debug.Log(mainPoint + " " + relativeProd);
+                    //Vector3 right = Vector3.Cross(mainPoint);
+                    //Vector3 left = -right;
+
+                    //list.Add(mainPoint);
+                    // list.Add(relativeProd);
+                    // list.Add(-relativeProd);
+                    //break;
+
+
+                    //list.Add(Vector3.Slerp(firstPos, hit.point, i / (float)numberOfVertices));
+                    //list.Add(right);
+                    //list.Add(left);
+
+                    //Debug.Log(mainPoint + " " + right);
+
                 }
 
 
@@ -76,10 +104,27 @@ public class RoadPlacement : MonoBehaviour
 
     void OnDrawGizmos()
     {
-        Gizmos.color = Color.red;
         for (int i = 0; i < list.Count; i++)
         {
-            Gizmos.DrawSphere(list[i], 0.01f);
+            Gizmos.color = Color.red;
+            Gizmos.DrawSphere(list[i].Item1, 0.01f);
+            Gizmos.color = Color.blue;
+            Gizmos.DrawRay(list[i].Item1, Vector3.up);
+            Gizmos.DrawRay(list[i].Item1, -Vector3.up);
+            Gizmos.color = Color.green;
+            Gizmos.DrawRay(list[i].Item1, -Vector3.right);
+            Gizmos.DrawRay(list[i].Item1, Vector3.right);
+            Gizmos.color = Color.yellow;
+            Gizmos.DrawRay(list[i].Item1, list[i].Item2);
+            Gizmos.DrawRay(list[i].Item1, list[i].Item2);
+            //Gizmos.DrawLine(list[i], Vector3.Cross(list[i], Vector3.up).normalized);
+            //Gizmos.DrawLine(list[i], Vector3.Cross(list[i], Vector3.back));
+            //Gizmos.DrawLine(list[i], Vector3.up);
+            // Gizmos.DrawLine(list[i], Vector3.right);
+            // Gizmos.DrawLine(list[i], Vector3.left);
+            // Gizmos.DrawLine(list[i], Vector3.down);
+            // Gizmos.DrawLine(list[i], Vector3.forward);
+            // Gizmos.DrawLine(list[i], Vector3.back);
         }
     }
 }

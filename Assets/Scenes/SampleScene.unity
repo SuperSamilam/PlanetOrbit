@@ -1590,6 +1590,8 @@ MonoBehaviour:
   mask:
     serializedVersion: 2
     m_Bits: 8
+  distanceBetweenRoadVertices: 0.05
+  roadWitdh: 0.05
 --- !u!4 &1833724096
 Transform:
   m_ObjectHideFlags: 0
