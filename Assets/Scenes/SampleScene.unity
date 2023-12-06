@@ -1586,12 +1586,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 66b21eef2de652e44a1294d6f3171867, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  roadObj: {fileID: 5355807911098877186, guid: c3b9a86874db07849868380cb3a63f41, type: 3}
+  roadObj: {fileID: 2577782896739536555, guid: b74900f2a64df85438db708cef33b719, type: 3}
   mask:
     serializedVersion: 2
     m_Bits: 8
-  distanceBetweenRoadVertices: 0.05
-  roadWitdh: 0.05
+  distanceBetweenRoadVertices: 0.027
+  roadWitdh: 0.1
 --- !u!4 &1833724096
 Transform:
   m_ObjectHideFlags: 0

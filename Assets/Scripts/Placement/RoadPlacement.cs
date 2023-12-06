@@ -1,4 +1,3 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -13,7 +12,7 @@ public class RoadPlacement : MonoBehaviour
     RaycastHit hit;
     Vector3 firstPos;
     bool firstClick;
-    List<(Vector3, Vector3)> list = new List<(Vector3, Vector3)>();
+    List<GameObject> list = new List<GameObject>();
 
     void Update()
     {
@@ -40,65 +39,56 @@ public class RoadPlacement : MonoBehaviour
                 float archLenght = angle / 360 * 2 * Mathf.PI * Vector3.Distance(Vector3.zero, firstPos);
                 int numberOfVertices = Mathf.CeilToInt(archLenght / distanceBetweenRoadVertices);
 
+                Vector3 start = Vector3.Slerp(firstPos, hit.point, 0);
+                Vector3 end = Vector3.Slerp(firstPos, hit.point, 1);
 
+                Vector3 dir = (end-start).normalized;
+                Debug.DrawLine (start, start + dir * 10, Color.yellow, Mathf.Infinity);
+                float dirAngel = Vector3.Angle(start, dir);
+                Debug.Log(dirAngel);
 
                 for (int i = 0; i <= numberOfVertices; i++)
                 {
                     Vector3 mainPoint = Vector3.Slerp(firstPos, hit.point, i / (float)numberOfVertices);
-
-                    Ray roadRay = Camera.main.ScreenPointToRay(mainPoint*2);
+                    Vector3 secondPoint = Vector3.Slerp(firstPos, hit.point, (i + 1) / (float)numberOfVertices);
+                    Ray roadRay = new Ray(mainPoint * 2, -mainPoint * 0.5f);
                     RaycastHit roadHit;
-                    if (Physics.Raycast(roadRay, out roadHit, Mathf.Infinity, mask))
+                    if (Physics.Raycast(roadRay, out roadHit, Mathf.Infinity))
                     {
-                        Vector3 pos = roadHit.point;
-                        Vector3 rot = roadHit.normal;
-                        list.Add((pos, rot));
+                        GameObject road = Instantiate(roadObj, mainPoint * 1.005f, Quaternion.identity);
+                        road.transform.forward = roadHit.normal;
+                        Vector3 crossAngle = Vector3.Cross(mainPoint, secondPoint);
+                        //Debug.DrawLine(crossAngle, crossAngle * 20f, Color.blue, 60f);
+                        float dotAngle = Vector3.Dot(mainPoint, secondPoint);
+                        //Debug.Log(dotAngle);
+
+
+
+                        road.transform.Rotate(Vector3.forward, dirAngel);
+
+                        list.Add(road);
                     }
 
 
-                    // Vector3 zeroPoint = Vector3.zero;
-
-                    // Vector3 relativeProd = Vector3.Cross(mainPoint, Vector3.up).normalized;
 
 
-                    // float normal = Vector3.Angle(mainPoint, zeroPoint);
-                    // Debug.Log(mainPoint + " " + relativeProd);
-                    //Vector3 right = Vector3.Cross(mainPoint);
-                    //Vector3 left = -right;
 
-                    //list.Add(mainPoint);
-                    // list.Add(relativeProd);
-                    // list.Add(-relativeProd);
-                    //break;
+                    //Instantiate(roadObj, firstPos, Quaternion.identity);
+                    // Instantiate(roadObj, hit.point, Quaternion.identity);
 
-
-                    //list.Add(Vector3.Slerp(firstPos, hit.point, i / (float)numberOfVertices));
-                    //list.Add(right);
-                    //list.Add(left);
-
-                    //Debug.Log(mainPoint + " " + right);
 
                 }
-
-
-
-
-
-                //Instantiate(roadObj, firstPos, Quaternion.identity);
-                // Instantiate(roadObj, hit.point, Quaternion.identity);
-
-
 
                 firstClick = false;
                 firstPos = Vector3.zero;
             }
-        }
-        else
-        {
-            // hand.transform.position = hit.point;
-            // prefab.transform.up = hit.normal;
-            // prefab.transform.GetComponent<MeshRenderer>().material = cantPlaceMat;
-            // return;
+            else
+            {
+                // hand.transform.position = hit.point;
+                // prefab.transform.up = hit.normal;
+                // prefab.transform.GetComponent<MeshRenderer>().material = cantPlaceMat;
+                // return;
+            }
         }
     }
 
@@ -107,16 +97,15 @@ public class RoadPlacement : MonoBehaviour
         for (int i = 0; i < list.Count; i++)
         {
             Gizmos.color = Color.red;
-            Gizmos.DrawSphere(list[i].Item1, 0.01f);
+            Gizmos.DrawSphere(list[i].transform.position, 0.01f);
+
             Gizmos.color = Color.blue;
-            Gizmos.DrawRay(list[i].Item1, Vector3.up);
-            Gizmos.DrawRay(list[i].Item1, -Vector3.up);
+            //Gizmos.DrawLine(list[i].transform.position, list[i].transform.forward);
             Gizmos.color = Color.green;
-            Gizmos.DrawRay(list[i].Item1, -Vector3.right);
-            Gizmos.DrawRay(list[i].Item1, Vector3.right);
+            //Gizmos.DrawLine(list[i].transform.position, list[i].transform.right);
             Gizmos.color = Color.yellow;
-            Gizmos.DrawRay(list[i].Item1, list[i].Item2);
-            Gizmos.DrawRay(list[i].Item1, list[i].Item2);
+            //Gizmos.DrawLine(list[i].transform.position, list[i].transform.forward);
+
             //Gizmos.DrawLine(list[i], Vector3.Cross(list[i], Vector3.up).normalized);
             //Gizmos.DrawLine(list[i], Vector3.Cross(list[i], Vector3.back));
             //Gizmos.DrawLine(list[i], Vector3.up);
