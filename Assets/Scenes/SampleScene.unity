@@ -860,7 +860,7 @@ MonoBehaviour:
     m_Bits: 8
   distanceBetweenRoadVertices: 0.027
   roadWitdh: 0.01
-  meshMaster: {fileID: 0}
+  meshMaster: {fileID: 1328958705}
 --- !u!4 &1833724096
 Transform:
   m_ObjectHideFlags: 0
