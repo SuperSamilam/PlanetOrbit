@@ -9,9 +9,16 @@ public class CountyNormal : MonoBehaviour
     void OnDrawGizmos()
     {
         Gizmos.color = Color.red;
-        Gizmos.DrawRay(transform.position, transform.right);
+        
+        //Gizmos.DrawRay(transform.position, transform.right);
+        
+        Gizmos.color = Color.blue;
+        
         Gizmos.DrawRay(transform.position, transform.forward);
-        Gizmos.DrawRay(transform.position, transform.right);
-        Gizmos.DrawRay(transform.position, transform.forward);
+        
+        // Gizmos.DrawRay(transform.position, -transform.right);
+        // Gizmos.DrawRay(transform.position, -transform.forward);
+
+        //Gizmos.DrawRay(transform.position, transform.up);
     }
 }
