@@ -4,14 +4,29 @@ using UnityEngine;
 
 public class Roads
 {
-    public List<Vector3> line1;
-    public List<Vector3> line2;
+    public List<RoadNode> points;
 
     public Roads() { }
 
-    public Roads(List<Vector3> line1, List<Vector3> line2)
+    public Roads(List<RoadNode> points)
     {
-        this.line1 = line1;
-        this.line2 = line2;
+        this.points = points;
+    }
+}
+
+public class RoadNode
+{
+    public Vector3 pos;
+    public List<RoadNode> neigbours;
+
+    public RoadNode(Vector3 pos, List<RoadNode> neigbours)
+    {
+        this.pos = pos;
+        this.neigbours = neigbours;
+    }
+    public RoadNode(Vector3 pos)
+    {
+        this.pos = pos;
+        neigbours = new List<RoadNode>();
     }
 }
