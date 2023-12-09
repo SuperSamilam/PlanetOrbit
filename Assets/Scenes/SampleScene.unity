@@ -860,8 +860,8 @@ MonoBehaviour:
   mask:
     serializedVersion: 2
     m_Bits: 8
-  distanceBetweenRoadVertices: 0.027
-  snappingDistance: 0.03
+  distanceBetweenRoadVertices: 0.03
+  snappingDistance: 0.015
   firstClick: 0
   snaping: 0
   shouldSnap: 0

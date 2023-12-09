@@ -17,9 +17,9 @@ public class Roads
 public class RoadNode
 {
     public Vector3 pos;
-    public List<RoadNode> neigbours;
+    public List<Vector3> neigbours;
 
-    public RoadNode(Vector3 pos, List<RoadNode> neigbours)
+    public RoadNode(Vector3 pos, List<Vector3> neigbours)
     {
         this.pos = pos;
         this.neigbours = neigbours;
@@ -27,6 +27,6 @@ public class RoadNode
     public RoadNode(Vector3 pos)
     {
         this.pos = pos;
-        neigbours = new List<RoadNode>();
+        neigbours = new List<Vector3>();
     }
 }

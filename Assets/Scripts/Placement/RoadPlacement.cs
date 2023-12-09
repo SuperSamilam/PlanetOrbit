@@ -1,57 +1,69 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Data.Common;
+using System.Security.Cryptography;
+using JetBrains.Annotations;
 using Unity.VisualScripting;
 using UnityEngine;
-using System.Linq;
+using UnityEngine.AI;
 
 public class RoadPlacement : MonoBehaviour
 {
     [SerializeField] List<Roads> roads = new List<Roads>();
+    [SerializeField] List<Roads> curves = new List<Roads>();
 
     public bool drawLines;
+    public bool drawRoadNodecolorCoded;
+    public bool withCurves;
     [SerializeField] GameObject roadObj;
     [SerializeField] GameObject roadMaster;
 
     [SerializeField] LayerMask mask;
     [SerializeField] float distanceBetweenRoadVertices = 0.05f;
     [SerializeField] float snappingDistance = 0.05f;
+    [SerializeField] int curveStrenght = 3;
     Ray ray;
     RaycastHit hit;
     Vector3 firstPos;
     public bool firstClick = false;
 
-    Roads road1;
-    RoadNode node1;
-    Roads road2;
-    RoadNode node2;
+    Dictionary<Roads, List<RoadNode>> clickedNodes = new Dictionary<Roads, List<RoadNode>>();
+
+    Roads road;
+    RoadNode roadNode;
 
     Vector3 mousePos;
     public bool snaping = false;
-    public bool shouldSnap = false;
 
     void Update()
     {
         ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         if (Physics.Raycast(ray, out hit, Mathf.Infinity, mask))
         {
-            shouldSnap = false;
+            //calculates if the node should snap to any already existing road
+            bool shouldSnap = false;
             for (int i = 0; i < roads.Count && !shouldSnap; i++)
             {
                 for (int j = 0; j < roads[i].points.Count; j++)
                 {
                     if (Vector3.Distance(roads[i].points[j].pos, hit.point) < snappingDistance)
                     {
+                        //if i havent clicked add theese settings;
                         if (!firstClick)
                         {
-                            road1 = roads[i];
-                            node1 = roads[i].points[j];
+                            road = roads[i];
+                            roadNode = roads[i].points[j];
+                            shouldSnap = true;
                         }
-                        if (firstClick)
+                        else if (firstClick) // does it register?
                         {
-                            road2 = roads[i];
-                            node2 = roads[i].points[j];
+                            road = roads[i];
+                            roadNode = roads[i].points[j];
+                            shouldSnap = true;
                         }
+                        else
+                            snaping = false;
 
                         mousePos = roads[i].points[j].pos;
                         shouldSnap = true;
@@ -62,6 +74,7 @@ public class RoadPlacement : MonoBehaviour
             if (!shouldSnap)
                 mousePos = hit.point;
 
+            //checks for input on the mousebutton and depedning on what time it is clicked
             if (Input.GetMouseButtonDown(0) && !firstClick)
             {
                 firstClick = true;
@@ -69,209 +82,211 @@ public class RoadPlacement : MonoBehaviour
                 if (shouldSnap)
                 {
                     snaping = true;
+                    clickedNodes.Add(road, new List<RoadNode> { roadNode });
                 }
             }
             else if (Input.GetMouseButtonDown(0) && firstClick)
             {
-                firstClick = false;
+                if (shouldSnap)
+                {
+                    snaping = true;
+                    if (clickedNodes.ContainsKey(road))
+                        clickedNodes[road].Add(roadNode);
+                    else
+                        clickedNodes.Add(road, new List<RoadNode> { roadNode });
+                }
+                //The list reperesting the points between the 2 points;
                 List<RoadNode> points = new List<RoadNode>();
 
+                //calculating the angle and archlenght for the points between the start and goal
                 float dot = Vector3.Dot(firstPos, mousePos);
                 dot = dot / (firstPos.magnitude * mousePos.magnitude);
                 float acos = Mathf.Acos(dot);
                 float angle = acos * 180 / Mathf.PI;
                 float archLenght = angle / 360 * 2 * Mathf.PI * Vector3.Distance(Vector3.zero, firstPos);
-
                 int numberOfVertices = Mathf.CeilToInt(archLenght / distanceBetweenRoadVertices);
 
+                //building linkedlist kinda with all the points
                 for (int i = 0; i <= numberOfVertices; i++)
                 {
                     RoadNode node = new RoadNode(Vector3.Slerp(firstPos, mousePos, i / (float)numberOfVertices) * 1.005f);
                     if (i != 0)
                     {
-                        node.neigbours.Add(points[i - 1]);
-                        points[i - 1].neigbours.Add(node);
+                        node.neigbours.Add(points[i - 1].pos);
+                        points[i - 1].neigbours.Add(node.pos);
                     }
                     points.Add(node);
                 }
 
+                //adds the roads to the total collection dependent on the snaping
                 if (snaping)
                 {
                     List<RoadNode> combinedPoints = new List<RoadNode>();
 
-                    // points[0].neigbours.Add(node1);
-                    // points[points.Count - 1].neigbours.Add(node2);
-                    // node1.neigbours.Add(points[0]);
-                    // node2.neigbours.Add(points[points.Count - 1]);
+                    int itteration = 0;
+                    foreach (KeyValuePair<Roads, List<RoadNode>> kvp in clickedNodes)
+                    {
+                        for (int i = kvp.Value.Count - 1; i >= 0; i--)
+                        {
+                            if (i == 0 && itteration == 0)
+                                points[0].neigbours.AddRange(kvp.Value[i].neigbours);
+                            else
+                                points[points.Count - 1].neigbours.AddRange(kvp.Value[i].neigbours);
 
+                            kvp.Key.points.Remove(kvp.Value[i]);
+                        }
+                        combinedPoints.AddRange(kvp.Key.points);
+                        itteration++;
+                    }
                     combinedPoints.AddRange(points);
-                    combinedPoints.AddRange(road1.points);
-                    combinedPoints.AddRange(road2.points);
 
-                    combinedPoints = combinedPoints.Distinct().ToList();
+                    foreach (KeyValuePair<Roads, List<RoadNode>> kvp in clickedNodes)
+                    {
+                        roads.Remove(kvp.Key);
+                    }
 
-                    roads.Remove(road1);
-                    roads.Remove(road2);
                     roads.Add(new Roads(combinedPoints));
-                    snaping = false;
                 }
                 else
+                {
                     roads.Add(new Roads(points));
+                }
 
-                node1 = null;
-                node2 = null;
-                road1 = null;
-                road2 = null;
-
-                roads.TrimExcess();
-                Debug.Log(roads.Count);
-                //drawRoads();
+                firstPos = Vector3.zero;
+                firstClick = false;
+                snaping = false;
+                clickedNodes.Clear();
+                road = null;
+                roadNode = null;
             }
         }
+    }
 
-        void drawRoads()
+    [ContextMenu("curves")]
+    List<Roads> editCurves()
+    {
+        List<Roads> curvedRoads = new List<Roads>();
+        Debug.Log(roads.Count);
+        for (int i = 0; i < roads.Count; i++)
         {
-            foreach (Transform child in roadMaster.transform)
+            List<RoadNode> nodes = new List<RoadNode>();
+            for (int j = 0; j < roads[i].points.Count; j++)
             {
-                Destroy(child.gameObject);
-            }
-            for (int i = 0; i < roads.Count; i++)
-            {
-                Debug.Log("print");
-                for (int j = 0; j < roads[i].points.Count; j++)
+                if (roads[i].points[j].neigbours.Count == 2)
                 {
-                    Vector3 dir = (roads[i].points[j].neigbours[0].pos - roads[i].points[j].pos).normalized;
+                    Vector3 node1 = roads[i].points[j].neigbours[0];
+                    Vector3 node2 = roads[i].points[j].neigbours[1];
 
-                    GameObject road = Instantiate(roadObj, roads[i].points[j].pos * 1.005f, Quaternion.identity, roadMaster.transform);
+                    float roadDist = Vector3.Distance(roads[i].points[j].pos, node1) + Vector3.Distance(roads[i].points[j].pos, node2);
+                    float shortDist = Vector3.Distance(node1, node2);
+                    //Debug.Log(roadDist + " " + shortDist);
+                    if (roadDist - 0.01f > shortDist || shortDist > roadDist + 0.01f)
+                    {
+                        Debug.Log(node1 + " " + node2);
+                        for (int s = 0; s <= curveStrenght; s++)
+                        {
+                            Vector3 lerp1 = Vector3.Lerp(node1, roads[i].points[j].pos, s/(float)curveStrenght);
+                            Vector3 lerp2 = Vector3.Lerp(roads[i].points[j].pos, node2, s/(float)curveStrenght);
 
-                    //road.transform.up = roadHit.normal;
-                    road.transform.up = roads[i].points[j].pos;
-                    road.transform.rotation = Quaternion.FromToRotation(road.transform.forward, dir) * road.transform.rotation;
+
+                            // Debug.Log(s + " " + curveStrenght + " " + s / (float)curveStrenght);
+                            // Debug.Log(Vector3.Slerp(node1, node2, s / (float)curveStrenght));
+                            nodes.Add(new RoadNode(Vector3.Lerp(lerp1, lerp2, s / (float)curveStrenght)));
+                        }
+                    }
+                    else
+                    {
+                        nodes.Add(roads[i].points[j]);
+                    }
+                }
+                else
+                {
+                    nodes.Add(roads[i].points[j]);
                 }
             }
+            curvedRoads.Add(new Roads(nodes));
         }
-
-
-
-
-        // ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-        // if (Physics.Raycast(ray, out hit, Mathf.Infinity, mask))
-        // {
-        //     if (!firstClick && Input.GetMouseButtonDown(0))
-        //     {
-        //         firstClick = true;
-        //         firstPos = hit.point;
-        //     }
-        //     else if (Input.GetMouseButtonDown(0))
-        //     {
-        //         List<Vector3> pos1 = new List<Vector3>();
-        //         List<Vector3> pos2 = new List<Vector3>();
-
-        //         //Spline 
-        //         float dot = Vector3.Dot(firstPos, hit.point);
-        //         dot = dot / (firstPos.magnitude * hit.point.magnitude);
-        //         float acos = Mathf.Acos(dot);
-        //         float angle = acos * 180 / Mathf.PI;
-        //         float archLenght = angle / 360 * 2 * Mathf.PI * Vector3.Distance(Vector3.zero, firstPos);
-        //         int numberOfVertices = Mathf.CeilToInt(archLenght / distanceBetweenRoadVertices);
-
-        //         for (int i = 0; i <= numberOfVertices; i++)
-        //         {
-        //             Vector3 mainPoint = Vector3.Slerp(firstPos, hit.point, i / (float)numberOfVertices) * 1.005f;
-        //             Vector3 secondPoint = Vector3.Slerp(firstPos, hit.point, (i + 1) / (float)numberOfVertices) * 1.005f;
-
-        //             if (i == numberOfVertices)
-        //                 secondPoint = Vector3.Slerp(firstPos, hit.point, (i - 1) / (float)numberOfVertices);
-
-        //             Vector3 dir = (secondPoint - mainPoint).normalized;
-
-        //             Ray roadRay = new Ray(mainPoint * 2, -mainPoint * 0.5f);
-        //             RaycastHit roadHit;
-        //             if (Physics.Raycast(roadRay, out roadHit, Mathf.Infinity))
-        //             {
-
-        //             }
-
-        //         }
-
-
-
-
-        //         //WeirdCode
-
-        //         // float dot = Vector3.Dot(firstPos, hit.point);
-        //         // dot = dot / (firstPos.magnitude * hit.point.magnitude);
-        //         // float acos = Mathf.Acos(dot);
-        //         // float angle = acos * 180 / Mathf.PI;
-        //         // float archLenght = angle / 360 * 2 * Mathf.PI * Vector3.Distance(Vector3.zero, firstPos);
-        //         // int numberOfVertices = Mathf.CeilToInt(archLenght / distanceBetweenRoadVertices);
-
-        //         // for (int i = 0; i <= numberOfVertices; i++)
-        //         // {
-        //         //     Vector3 mainPoint = Vector3.Slerp(firstPos, hit.point, i / (float)numberOfVertices);
-        //         //     Vector3 secondPoint = Vector3.Slerp(firstPos, hit.point, (i + 1) / (float)numberOfVertices);
-
-        //         //     if (i == numberOfVertices)
-        //         //         secondPoint = Vector3.Slerp(firstPos, hit.point, (i - 1) / (float)numberOfVertices);
-
-        //         //     Ray roadRay = new Ray(mainPoint * 2, -mainPoint * 0.5f);
-        //         //     RaycastHit roadHit;
-
-        //         //     Vector3 dir = (secondPoint - mainPoint).normalized;
-
-        //         //     if (Physics.Raycast(roadRay, out roadHit, Mathf.Infinity))
-        //         //     {
-        //         //         GameObject road = Instantiate(roadObj, mainPoint * 1.005f, Quaternion.identity);
-
-        //         //         road.transform.up = roadHit.normal;
-        //         //         road.transform.rotation = Quaternion.FromToRotation(road.transform.forward, dir) * road.transform.rotation;
-
-
-
-
-        //         //         list.Add(road);
-        //         //     }
-        //         // }
-        //         roads.Add(new Roads(pos1, pos2));
-        //         firstClick = false;
-        //         firstPos = Vector3.zero;
-        //     }
-        //     else
-        //     {
-        //         // hand.transform.position = hit.point;
-        //         // prefab.transform.up = hit.normal;
-        //         // prefab.transform.GetComponent<MeshRenderer>().material = cantPlaceMat;
-        //         // return;
-        //     }
-        // }
+        curves = curvedRoads;
+        return curvedRoads;
     }
 
 
     void OnDrawGizmos()
     {
-        List<Color> colors = new List<Color>() { Color.black, Color.blue, Color.cyan, Color.gray, Color.green, Color.grey, Color.magenta, Color.red, Color.white, Color.yellow };
         Gizmos.color = Color.red;
-        Gizmos.DrawSphere(mousePos, 0.01f);
-        for (int i = 0; i < roads.Count; i++)
+        Gizmos.DrawSphere(mousePos, 0.015f);
+
+        if (firstPos != Vector3.zero)
         {
-            for (int j = 0; j < roads[i].points.Count; j++)
+            Gizmos.DrawSphere(firstPos, 0.015f);
+            Gizmos.DrawLine(firstPos, mousePos);
+        }
+        List<Color> colors = new List<Color>() { Color.blue, Color.black, Color.cyan, Color.gray, Color.green, Color.grey, Color.magenta, Color.white };
+        List<Roads> drawing = new List<Roads>();
+        if (withCurves && curves != null)
+        {
+            drawing = curves;
+        }
+        else
+        {
+            drawing = roads;
+        }
+
+
+        if (!drawRoadNodecolorCoded)
+        {
+            for (int i = 0; i < drawing.Count; i++)
             {
                 Gizmos.color = colors[i % colors.Count];
-                Gizmos.DrawSphere(roads[i].points[j].pos, 0.008f);
-                for (int k = 0; k < roads[i].points[j].neigbours.Count; k++)
+                for (int j = 0; j < drawing[i].points.Count; j++)
                 {
-                    Gizmos.color = Color.black;
-                    Gizmos.DrawLine(roads[i].points[j].pos, roads[i].points[j].neigbours[k].pos);
+                    Gizmos.DrawSphere(drawing[i].points[j].pos, 0.01f);
                 }
-                Gizmos.DrawLine(roads[i].points[j].pos, roads[i].points[j].pos * 10f);
             }
         }
-        Gizmos.color = Color.green;
-        for (int i = 0; i < roads.Count; i++)
+        else
         {
-            for (int j = 0; j < roads[i].points.Count; j++)
+            for (int i = 0; i < drawing.Count; i++)
             {
-                    
+                for (int j = 0; j < drawing[i].points.Count; j++)
+                {
+                    Gizmos.color = colors[j % colors.Count];
+                    Gizmos.DrawSphere(drawing[i].points[j].pos, 0.01f);
+                }
+            }
+        }
+
+        if (drawLines)
+        {
+            Gizmos.color = Color.black;
+            for (int i = 0; i < drawing.Count; i++)
+            {
+                for (int j = 0; j < drawing[i].points.Count; j++)
+                {
+                    for (int k = 0; k < drawing[i].points[j].neigbours.Count; k++)
+                    {
+                        Gizmos.DrawLine(drawing[i].points[j].pos, drawing[i].points[j].neigbours[k]);
+                    }
+                }
+            }
+
+            bool foundNode = false;
+            for (int i = 0; i < drawing.Count && !foundNode; i++)
+            {
+                for (int j = 0; j < drawing[i].points.Count; j++)
+                {
+                    if (Vector3.Distance(drawing[i].points[j].pos, hit.point) < snappingDistance)
+                    {
+                        RoadNode node = drawing[i].points[j];
+                        Gizmos.color = Color.yellow;
+                        for (int k = 0; k < node.neigbours.Count; k++)
+                        {
+                            Gizmos.DrawLine(node.pos, node.neigbours[k]);
+                        }
+                        foundNode = true;
+                        break;
+                    }
+                }
             }
         }
     }
