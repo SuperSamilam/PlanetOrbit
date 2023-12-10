@@ -780,7 +780,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 65d2688e3d5fa294e90057a9d8351dd3, type: 2}
+  - {fileID: 2100000, guid: 1bf2021dca61820448e8f8503917a933, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -854,17 +854,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 66b21eef2de652e44a1294d6f3171867, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  drawLines: 0
-  roadObj: {fileID: 2752032192524225134, guid: b74900f2a64df85438db708cef33b719, type: 3}
+  drawMode: 3
   roadMaster: {fileID: 1328958703}
+  roadMasterFilter: {fileID: 1328958705}
   mask:
     serializedVersion: 2
     m_Bits: 8
   distanceBetweenRoadVertices: 0.03
   snappingDistance: 0.015
-  firstClick: 0
-  snaping: 0
-  shouldSnap: 0
+  roadWitdh: 0.01
+  curveStrenght: 5
+  curveThresholdOfsset: 0.01
 --- !u!4 &1833724096
 Transform:
   m_ObjectHideFlags: 0
