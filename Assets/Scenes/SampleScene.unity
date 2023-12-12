@@ -854,7 +854,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 66b21eef2de652e44a1294d6f3171867, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  drawMode: 3
+  drawMode: 1
   roadMaster: {fileID: 1328958703}
   roadMasterFilter: {fileID: 1328958705}
   mask:

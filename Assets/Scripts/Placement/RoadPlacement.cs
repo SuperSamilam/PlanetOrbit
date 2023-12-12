@@ -225,28 +225,32 @@ public class RoadPlacement : MonoBehaviour
                             roadnode2.neigbours.Add(curvedPoints[curvedPoints.Count - 1].neigbours[c]);
                         }
                     }
+                    curvedPoints[curvedPoints.Count - 1] = roadnode2;
 
                     dist = float.MaxValue;
-                    for (int c = 0; c < points[i + 1].neigbours.Count; c++)
+                    Debug.Log(points.Count + " count " + i);
+                    if (points.Count != i + 1)
                     {
-                        if (dist > Vector3.Distance(points[i].pos, points[i + 1].neigbours[c]))
+                        for (int c = 0; c < points[i + 1].neigbours.Count; c++)
                         {
-                            dist = Vector3.Distance(points[i].pos, points[i + 1].neigbours[c]);
-                            closestPos = points[i + 1].neigbours[c];
+                            if (dist > Vector3.Distance(points[i].pos, points[i + 1].neigbours[c]))
+                            {
+                                dist = Vector3.Distance(points[i].pos, points[i + 1].neigbours[c]);
+                                closestPos = points[i + 1].neigbours[c];
+                            }
                         }
-                    }
-                    for (int c = 0; c < points[i + 1].neigbours.Count; c++)
-                    {
-                        if (closestPos != points[i + 1].neigbours[c])
+                        for (int c = 0; c < points[i + 1].neigbours.Count; c++)
                         {
-                            roadnode1.neigbours.Add(points[i + 1].neigbours[c]);
+                            if (closestPos != points[i + 1].neigbours[c])
+                            {
+                                roadnode1.neigbours.Add(points[i + 1].neigbours[c]);
+                            }
                         }
+                        points[i + 1] = roadnode1;
+
                     }
 
                     //chaning the points
-                    curvedPoints[curvedPoints.Count - 1] = roadnode2;
-                    points[i + 1] = roadnode1;
-
                     //for vertice i say exist make a new poin on the curve
                     for (int s = 1; s < curveStrenght; s++)
                     {
@@ -255,6 +259,7 @@ public class RoadPlacement : MonoBehaviour
                         //adding the node and all its connections
                         if (s == curveStrenght - 1)
                         {
+                            //fix it
                             curvedPoints.Add(new RoadNode(Vector3.Lerp(lerp2, lerp1, s / (float)curveStrenght), new List<Vector3>() { points[i + 1].pos, curvedPoints[curvedPoints.Count - 1].pos }));
                             curvedPoints[curvedPoints.Count - 1].curve = true;
                             curvedPoints[curvedPoints.Count - 2].neigbours.Add(Vector3.Lerp(lerp2, lerp1, s / (float)curveStrenght));
@@ -291,8 +296,8 @@ public class RoadPlacement : MonoBehaviour
             Vector3 p1 = road.curvedpoints[i].pos + (right * roadWitdh);
             Vector3 p2 = road.curvedpoints[i].pos + (-right * roadWitdh);
 
-            road.listOfNode1.Add(p1);
-            road.listOfNode2.Add(p2);
+            road.listOfNode1.Add(new RoadNode(p1));
+            road.listOfNode2.Add(new RoadNode(p2));
         }
     }
 
@@ -314,22 +319,22 @@ public class RoadPlacement : MonoBehaviour
 
         int lenght = road.listOfNode1.Count;
 
-        for (int i = 0; i < lenght-1; i++)
+        for (int i = 0; i < lenght - 1; i++)
         {
-            Vector3 p1 = road.listOfNode1[i];
-            Vector3 p2 = road.listOfNode2[i];
-            Vector3 p3 = road.listOfNode1[i+1];
-            Vector3 p4 = road.listOfNode2[i+1];
+            Vector3 p1 = road.listOfNode1[i].pos;
+            Vector3 p2 = road.listOfNode2[i].pos;
+            Vector3 p3 = road.listOfNode1[i + 1].pos;
+            Vector3 p4 = road.listOfNode2[i + 1].pos;
 
             offset = 4 * i;
 
             int t1 = offset + 0;
             int t2 = offset + 1;
-            int t3 = offset + 3;
+            int t3 = offset + 2;
 
-            int t4 = offset + 3;
-            int t5 = offset + 2;
-            int t6 = offset + 0;
+            int t4 = offset + 0;
+            int t5 = offset + 1;
+            int t6 = offset + 2;
 
             verts.AddRange(new List<Vector3> { p1, p2, p3, p4 });
             tris.AddRange(new List<int> { t1, t2, t3, t4, t5, t6 });
@@ -372,6 +377,17 @@ public class RoadPlacement : MonoBehaviour
                         Gizmos.color = Color.black;
                         Gizmos.DrawLine(roads[i].points[j].pos, roads[i].points[j].neigbours[k]);
                     }
+
+                    if (Vector3.Distance(roads[i].points[j].pos, hit.point) < snappingDistance)
+                    {
+                        Gizmos.color = Color.yellow;
+                        Gizmos.DrawSphere(roads[i].points[j].pos, 0.01f);
+                        for (int k = 0; k < roads[i].points[j].neigbours.Count; k++)
+                        {
+                            Gizmos.color = Color.yellow;
+                            Gizmos.DrawLine(roads[i].points[j].pos, roads[i].points[j].neigbours[k]);
+                        }
+                    }
                 }
             }
         }
@@ -389,6 +405,17 @@ public class RoadPlacement : MonoBehaviour
                         Gizmos.color = Color.black;
                         Gizmos.DrawLine(roads[i].curvedpoints[j].pos, roads[i].curvedpoints[j].neigbours[k]);
                     }
+
+                    if (Vector3.Distance(roads[i].curvedpoints[j].pos, hit.point) < snappingDistance)
+                    {
+                        Gizmos.color = Color.yellow;
+                        Gizmos.DrawSphere(roads[i].curvedpoints[j].pos, 0.01f);
+                        for (int k = 0; k < roads[i].curvedpoints[j].neigbours.Count; k++)
+                        {
+                            Gizmos.color = Color.yellow;
+                            Gizmos.DrawLine(roads[i].curvedpoints[j].pos, roads[i].curvedpoints[j].neigbours[k]);
+                        }
+                    }
                 }
             }
         }
@@ -399,8 +426,8 @@ public class RoadPlacement : MonoBehaviour
                 Gizmos.color = colors[i % colors.Count];
                 for (int j = 0; j < roads[i].listOfNode1.Count; j++)
                 {
-                    Gizmos.DrawSphere(roads[i].listOfNode1[j], 0.005f);
-                    Gizmos.DrawSphere(roads[i].listOfNode2[j], 0.005f);
+                    Gizmos.DrawSphere(roads[i].listOfNode1[j].pos, 0.005f);
+                    Gizmos.DrawSphere(roads[i].listOfNode2[j].pos, 0.005f);
                 }
             }
         }
