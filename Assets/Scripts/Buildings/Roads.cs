@@ -50,6 +50,9 @@ public class RoadNode
     public Vector3 pos;
     public bool curve = false;
     public List<Vector3> neigbours;
+    public RoadNode neigbour;
+    public Vector3 rightPos;
+    public Vector3 leftPos;
 
     public RoadNode(Vector3 pos, List<Vector3> neigbours)
     {

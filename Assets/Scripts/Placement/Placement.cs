@@ -28,6 +28,7 @@ public class Placement : MonoBehaviour
     {
         setUpHand();
     }
+    //assign the gameobject to place
     void setUpHand()
     {
         if (hand.transform.childCount > 0)
@@ -44,6 +45,7 @@ public class Placement : MonoBehaviour
         ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         if (Physics.Raycast(ray, out hit, Mathf.Infinity, ~mask))
         {
+            //set the object and the current position and asign teh right mat
             hand.transform.position = hit.point;
             prefab.transform.up = hit.normal;
             prefab.transform.Rotate(new Vector3(0,1,0), rotation);
@@ -56,12 +58,14 @@ public class Placement : MonoBehaviour
         }
         else
         {
+            //dit not hit correctly and assign the fauly material
             hand.transform.position = hit.point;
             prefab.transform.up = hit.normal;
             prefab.transform.GetComponent<MeshRenderer>().material = cantPlaceMat;
             return;
         }
 
+        //Check if it is colliding with an object
         BoxCollider buildingCollider = prefab.GetComponent<BoxCollider>();
         if (Physics.OverlapBox(prefab.transform.position, buildingCollider.size / 2, prefab.transform.rotation, buildingMask).Length != 0)
         {
@@ -72,6 +76,7 @@ public class Placement : MonoBehaviour
         else
             canBuild = true;
 
+        //change the rotation
         if (Input.GetKey(KeyCode.R))
         {
             rotation += 0.5f;
@@ -79,6 +84,7 @@ public class Placement : MonoBehaviour
 
         Ray sideRay;
 
+        //Shoot 4 rays to the side seeing if anything is placed to the side
         sideRay = new Ray(prefab.transform.position, prefab.transform.right);
         if (Physics.Raycast(sideRay, 5, water))
         {
@@ -108,7 +114,7 @@ public class Placement : MonoBehaviour
             return;
         }
 
-
+        //place the building
         if (canBuild && Input.GetMouseButtonDown(0))
         {
             GameObject obj = Instantiate(placeObject, prefab.transform.position, prefab.transform.rotation);

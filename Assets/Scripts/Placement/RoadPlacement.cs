@@ -117,6 +117,7 @@ public class RoadPlacement : MonoBehaviour
                     if (i != 0)
                     {
                         node.neigbours.Add(points[i - 1].pos);
+                        //node.neigbour = points[i - 1];
                         points[i - 1].neigbours.Add(node.pos);
                     }
                     points.Add(node);
@@ -299,6 +300,18 @@ public class RoadPlacement : MonoBehaviour
             road.listOfNode1.Add(new RoadNode(p1));
             road.listOfNode2.Add(new RoadNode(p2));
         }
+        // for (int i = 0; i < road.points.Count; i++)
+        // {   
+        //     if (road.points[i].neigbour == null)
+        //         continue;
+        //     Vector3 right = Vector3.Cross(road.points[i].neigbour.pos * 1.01f, road.points[i].pos * 1.01f).normalized;
+        //     Vector3 p1 = road.points[i].pos + (right * roadWitdh);
+        //     Vector3 p2 = road.points[i].pos + (-right * roadWitdh);
+
+        //     road.points[i].rightPos = p1;
+        //     road.points[i].leftPos = p2;
+
+        // }
     }
 
     [ContextMenu("buildMesh")]
@@ -332,9 +345,9 @@ public class RoadPlacement : MonoBehaviour
             int t2 = offset + 1;
             int t3 = offset + 2;
 
-            int t4 = offset + 0;
-            int t5 = offset + 1;
-            int t6 = offset + 2;
+            int t4 = offset + 3;
+            int t5 = offset + 2;
+            int t6 = offset + 1;
 
             verts.AddRange(new List<Vector3> { p1, p2, p3, p4 });
             tris.AddRange(new List<int> { t1, t2, t3, t4, t5, t6 });
@@ -378,15 +391,11 @@ public class RoadPlacement : MonoBehaviour
                         Gizmos.DrawLine(roads[i].points[j].pos, roads[i].points[j].neigbours[k]);
                     }
 
-                    if (Vector3.Distance(roads[i].points[j].pos, hit.point) < snappingDistance)
+                    if (Vector3.Distance(roads[i].points[j].pos, hit.point) < snappingDistance && roads[i].points[j].neigbour != null)
                     {
                         Gizmos.color = Color.yellow;
                         Gizmos.DrawSphere(roads[i].points[j].pos, 0.01f);
-                        for (int k = 0; k < roads[i].points[j].neigbours.Count; k++)
-                        {
-                            Gizmos.color = Color.yellow;
-                            Gizmos.DrawLine(roads[i].points[j].pos, roads[i].points[j].neigbours[k]);
-                        }
+                        Gizmos.DrawLine(roads[i].points[j].pos, roads[i].points[j].neigbour.pos);
                     }
                 }
             }
