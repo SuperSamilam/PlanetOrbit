@@ -19,7 +19,7 @@ public class testRoadPlacement : MonoBehaviour
         point1.Clear();
         point2.Clear();
         //for each point on the curvedPoints node list make a point to the left and right
-        for (int i = 0; i < points.Count - 1; i++)
+        for (int i = 0; i < points.Count; i++)
         {
             Vector3 right = Vector3.Cross(points[i], Vector3.forward).normalized;
             Vector3 p1 = points[i] + (right * 1f);

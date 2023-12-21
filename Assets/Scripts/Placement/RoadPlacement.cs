@@ -300,18 +300,6 @@ public class RoadPlacement : MonoBehaviour
             road.listOfNode1.Add(new RoadNode(p1));
             road.listOfNode2.Add(new RoadNode(p2));
         }
-        // for (int i = 0; i < road.points.Count; i++)
-        // {   
-        //     if (road.points[i].neigbour == null)
-        //         continue;
-        //     Vector3 right = Vector3.Cross(road.points[i].neigbour.pos * 1.01f, road.points[i].pos * 1.01f).normalized;
-        //     Vector3 p1 = road.points[i].pos + (right * roadWitdh);
-        //     Vector3 p2 = road.points[i].pos + (-right * roadWitdh);
-
-        //     road.points[i].rightPos = p1;
-        //     road.points[i].leftPos = p2;
-
-        // }
     }
 
     [ContextMenu("buildMesh")]
