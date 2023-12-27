@@ -1003,7 +1003,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1833724096}
   - component: {fileID: 1833724095}
-  - component: {fileID: 1833724097}
   m_Layer: 0
   m_Name: RoadController
   m_TagString: Untagged
@@ -1018,22 +1017,17 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1833724094}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 66b21eef2de652e44a1294d6f3171867, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   drawMode: 1
-  roadMaster: {fileID: 1328958703}
-  roadMasterFilter: {fileID: 1328958705}
-  mask:
-    serializedVersion: 2
-    m_Bits: 8
-  distanceBetweenRoadVertices: 0.03
-  snappingDistance: 0.015
+  camera: {fileID: 963194227}
+  distBetweenPoints: 0.03
   roadWitdh: 0.01
-  curveStrenght: 5
-  curveThresholdOfsset: 0.01
+  curveThres: 0.03
+  snapingDist: 0.03
 --- !u!4 &1833724096
 Transform:
   m_ObjectHideFlags: 0
@@ -1049,26 +1043,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1833724097
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1833724094}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 221608f4bf480534f8656e358a8d6698, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  mode: 0
-  roadMaster: {fileID: 1328958705}
-  intersectionFilter: {fileID: 1568200252}
-  tempRoadFilter: {fileID: 1708574882}
-  roadWitdh: 0.01
-  disBetweenVerts: 0.03
-  snapingDist: 0.015
-  curveStrenght: 1
 --- !u!1 &126930271984803555 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 8306912957107487588, guid: 45b9cae9c20945847bf1e486a00b3818, type: 3}

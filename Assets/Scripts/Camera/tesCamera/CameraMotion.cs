@@ -41,10 +41,10 @@ namespace CameraControl {
 			Move();
 		}
 
-		private void OnDrawGizmos() {
-			Gizmos.color = Color.red;
-			//Gizmos.DrawSphere(transform.position, 5f);
-			Gizmos.DrawWireCube(Vector3.zero, new Vector3(_range.x * 2f, 5f, _range.y * 2f));
-		}
+		// private void OnDrawGizmos() {
+		// 	Gizmos.color = Color.red;
+		// 	//Gizmos.DrawSphere(transform.position, 5f);
+		// 	Gizmos.DrawWireCube(Vector3.zero, new Vector3(_range.x * 2f, 5f, _range.y * 2f));
+		// }
 	}
 }

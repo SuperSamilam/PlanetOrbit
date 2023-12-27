@@ -71,24 +71,24 @@ public class testRoadPlacement : MonoBehaviour
     }
 
 
-    void OnDrawGizmos()
-    {
-        Gizmos.color = Color.red;
-        if (DrawEdges && point1.Count != 0)
-        {
-            Gizmos.color = Color.blue;
-            for (int i = 0; i < point1.Count; i++)
-            {
-                Gizmos.DrawSphere(point1[i], 0.1f);
-                Gizmos.DrawSphere(point2[i], 0.1f);
-            }
-            return;
-        }
-        for (int i = 0; i < points.Count; i++)
-        {
-            Gizmos.DrawSphere(points[i], 0.1f);
-        }
-    }
+    // void OnDrawGizmos()
+    // {
+    //     Gizmos.color = Color.red;
+    //     if (DrawEdges && point1.Count != 0)
+    //     {
+    //         Gizmos.color = Color.blue;
+    //         for (int i = 0; i < point1.Count; i++)
+    //         {
+    //             Gizmos.DrawSphere(point1[i], 0.1f);
+    //             Gizmos.DrawSphere(point2[i], 0.1f);
+    //         }
+    //         return;
+    //     }
+    //     for (int i = 0; i < points.Count; i++)
+    //     {
+    //         Gizmos.DrawSphere(points[i], 0.1f);
+    //     }
+    // }
 
     void OnValidate()
     {

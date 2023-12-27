@@ -4,69 +4,49 @@ using UnityEngine;
 
 public class Roads
 {
+    public static Dictionary<Vector3, List<Roads>> intersection = new();
     public List<RoadNode> points;
-    public List<RoadNode> curvedpoints;
-    public List<RoadNode> listOfNode1;
-    public List<RoadNode> listOfNode2;
-    public List<RoadNode> drawPoints;
+    public List<Vector3> roadCurvePoints;
+    public List<Vector3> list1;
+    public List<Vector3> list2;
+    public Vector3 extraPos;
+    public bool loop;
 
-    public Roads()
-    {
-        points = new List<RoadNode>();
-        curvedpoints = new List<RoadNode>();
-        listOfNode1 = new List<RoadNode>();
-        listOfNode2 = new List<RoadNode>();
-    }
     public Roads(List<RoadNode> points)
     {
         this.points = points;
-        curvedpoints = new List<RoadNode>();
-        listOfNode1 = new List<RoadNode>();
-        listOfNode2 = new List<RoadNode>();
+        roadCurvePoints = new List<Vector3>();
+        list1 = new List<Vector3>();
+        list2 = new List<Vector3>();
     }
-    public Roads(List<RoadNode> points, List<RoadNode> curvedpoints)
+    public Roads()
     {
-        this.points = points;
-        this.curvedpoints = curvedpoints;
-        listOfNode1 = new List<RoadNode>();
-        listOfNode2 = new List<RoadNode>();
-    }
-
-    public void ResetConnections()
-    {
-        for (int i = 0; i < curvedpoints.Count; i++)
-        {
-            curvedpoints[i].ClearConnections();
-        }
-    }
-    public void DrawNewConnectionTree(List<Vector3> visited, RoadNode node)
-    {
-        visited.Add(node.pos);
+        points = new List<RoadNode>();
+        roadCurvePoints = new List<Vector3>();
+        list1 = new List<Vector3>();
+        list2 = new List<Vector3>();
     }
 }
 
 public class RoadNode
 {
     public Vector3 pos;
-    public bool curve = false;
-    public List<Vector3> neigbours;
-    public RoadNode neigbour;
-    public Vector3 rightPos;
-    public Vector3 leftPos;
+    public List<Vector3> neighbours;
+    public bool curve;
 
-    public RoadNode(Vector3 pos, List<Vector3> neigbours)
+    public RoadNode(Vector3 pos, List<Vector3> neighbours)
     {
         this.pos = pos;
-        this.neigbours = neigbours;
+        this.neighbours = neighbours;
     }
     public RoadNode(Vector3 pos)
     {
         this.pos = pos;
-        neigbours = new List<Vector3>();
+        neighbours = new List<Vector3>();
     }
-
-    public void ClearConnections()
+    public RoadNode()
     {
-        neigbours.Clear();
+        neighbours = new List<Vector3>();
     }
 }
+
