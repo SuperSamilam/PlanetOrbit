@@ -1026,8 +1026,13 @@ MonoBehaviour:
   camera: {fileID: 963194227}
   distBetweenPoints: 0.03
   roadWitdh: 0.01
-  curveThres: 0.03
+  curveThres: 0.037
+  MaxCurveThres: 0.06
+  curveStrenght: 3
   snapingDist: 0.03
+  roadMesh: {fileID: 1328958705}
+  tempMesh: {fileID: 1708574882}
+  intersectionMesh: {fileID: 0}
 --- !u!4 &1833724096
 Transform:
   m_ObjectHideFlags: 0

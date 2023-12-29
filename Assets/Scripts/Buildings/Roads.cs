@@ -31,22 +31,12 @@ public class Roads
 public class RoadNode
 {
     public Vector3 pos;
-    public List<Vector3> neighbours;
     public bool curve;
 
-    public RoadNode(Vector3 pos, List<Vector3> neighbours)
-    {
-        this.pos = pos;
-        this.neighbours = neighbours;
-    }
     public RoadNode(Vector3 pos)
     {
         this.pos = pos;
-        neighbours = new List<Vector3>();
-    }
-    public RoadNode()
-    {
-        neighbours = new List<Vector3>();
     }
 }
+
 
