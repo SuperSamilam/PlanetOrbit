@@ -1213,9 +1213,23 @@ public class RoadPlacement : MonoBehaviour
             }
 
             int lenght = verts.Count;
-            centerPositions.OrderBy(v => Mathf.Atan2(v.x - center.x, v.y - center.y));
+
+            List<(Vector3, float)> correctlySorted = new List<(Vector3, float)>();
+            for (int i = 0; i < centerPositions.Count; i++)
+            {
+                Vector3 dir = centerPositions[i] - center;
+                float angle = Mathf.Atan2(dir.y, dir.x);
+                correctlySorted.Add((centerPositions[i], angle));
+            }
+            correctlySorted.Sort((a, b) => a.Item2.CompareTo(b.Item2));
+            centerPositions = new List<Vector3>();
+            for (int i = 0; i < correctlySorted.Count; i++)
+            {
+                centerPositions.Add(correctlySorted[i].Item1);
+            }
+
             verts.AddRange(centerPositions);
-            tris.AddRange(new List<int>() { lenght + 0, lenght + 1, lenght + 2, lenght + 3, lenght + 1, lenght + 0 });
+            tris.AddRange(new List<int>() { lenght + 2, lenght + 1, lenght + 0, lenght + 3, lenght + 2, lenght + 0 });
 
             // foreach (KeyValuePair<Vector2, List<Vector3>> point in indexPositions)
             // {

@@ -880,7 +880,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 1ca2f41e47d15a041ae403ab971e5444, type: 2}
+  - {fileID: 2100000, guid: c7c2242d04d7d7a4e86c852478e747b7, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1032,7 +1032,7 @@ MonoBehaviour:
   snapingDist: 0.03
   roadMesh: {fileID: 1328958705}
   tempMesh: {fileID: 1708574882}
-  intersectionMesh: {fileID: 0}
+  intersectionMesh: {fileID: 1568200252}
 --- !u!4 &1833724096
 Transform:
   m_ObjectHideFlags: 0
