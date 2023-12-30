@@ -1,7 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Xml;
 using Unity.VisualScripting;
 using UnityEngine;
 
@@ -1119,26 +1116,30 @@ public class RoadPlacement : MonoBehaviour
 
         foreach (KeyValuePair<Vector3, List<Roads>> kvp in Roads.intersection)
         {
-            Vector3 center = kvp.Key;
-            List<(Vector3, Vector2)> pointIndex = new();
-            List<(float, Vector3, Vector2)> anglePosIndex = new();
+            Vector3 center = Vector3.zero;
+            List<(Vector3, int)> pointIndex = new();
+            List<(float, Vector3, int)> anglePosIndex = new();
 
             for (int i = 0; i < kvp.Value.Count; i++)
             {
                 if (Vector3.Distance(kvp.Value[i].points[0].pos, kvp.Key) > Vector3.Distance(kvp.Value[i].points[kvp.Value[i].points.Count - 1].pos, kvp.Key))
                 {
-                    Vector2 mainPoint = new Vector2(i, kvp.Value[i].points.Count - 1);
-                    pointIndex.Add((kvp.Value[i].list1[kvp.Value[i].list1.Count - 1], mainPoint));
-                    pointIndex.Add((kvp.Value[i].list2[kvp.Value[i].list2.Count - 1], mainPoint));
+                    pointIndex.Add((kvp.Value[i].list1[kvp.Value[i].list1.Count - 1], i));
+                    pointIndex.Add((kvp.Value[i].list2[kvp.Value[i].list2.Count - 1], i));
+                    center += kvp.Value[i].list1[kvp.Value[i].list1.Count - 1];
+                    center += kvp.Value[i].list2[kvp.Value[i].list2.Count - 1];
                 }
                 else
                 {
-                    Vector2 mainPoint = new Vector2(i, 0);
-                    pointIndex.Add((kvp.Value[i].list1[0], mainPoint));
-                    pointIndex.Add((kvp.Value[i].list2[0], mainPoint));
+                    pointIndex.Add((kvp.Value[i].list1[0], i));
+                    pointIndex.Add((kvp.Value[i].list2[0], i));
+                    center += kvp.Value[i].list1[0];
+                    center += kvp.Value[i].list2[0];
                 }
             }
+            center = center / pointIndex.Count;
 
+            //Sorting the points
             for (int i = 0; i < pointIndex.Count; i++)
             {
                 Vector3 dir = pointIndex[i].Item1 - center;
@@ -1147,145 +1148,55 @@ public class RoadPlacement : MonoBehaviour
             }
             anglePosIndex.Sort((a, b) => a.Item1.CompareTo(b.Item1));
 
-            pointIndex = new List<(Vector3, Vector2)>();
+            int lenght = anglePosIndex.Count - 1;
+            for (int i = 0; i < lenght; i++)
+            {
+                if (anglePosIndex[i].Item3 != anglePosIndex[i + 1].Item3)
+                {
+                    if (Vector3.Distance(anglePosIndex[i].Item2, anglePosIndex[i + 1].Item2) > 0.03f)
+                        continue;
+
+                    Vector3 midPoint = Vector3.Lerp(Vector3.Lerp(anglePosIndex[i].Item2, anglePosIndex[i + 1].Item2, 0.5f), center, 0.6f);
+                    for (int j = 1; j < 3; j++)
+                    {
+                        Vector3 lerp1 = Vector3.Lerp(anglePosIndex[i].Item2, midPoint, j / 3f);
+                        Vector3 lerp2 = Vector3.Lerp(midPoint, anglePosIndex[i + 1].Item2, j / 3f);
+                        Vector3 pos = Vector3.Lerp(lerp1, lerp2, j / 3f);
+                        anglePosIndex.Add((0, pos, 0));
+                    }
+                }
+            }
+
             for (int i = 0; i < anglePosIndex.Count; i++)
             {
-                pointIndex.Add((anglePosIndex[i].Item2, anglePosIndex[i].Item3));
-            }
-
-            List<Vector3> centerPositions = new List<Vector3>();
-            Dictionary<Vector2, List<Vector3>> indexPositions = new Dictionary<Vector2, List<Vector3>>();
-            for (int i = 0; i < pointIndex.Count - 1; i++)
-            {
-                if (pointIndex[i].Item2 != pointIndex[i + 1].Item2)
-                {
-                    if (pointIndex.Count == 8)
-                    {
-                        Vector3 medium = (pointIndex[i].Item1 + pointIndex[i + 1].Item1) / 2f;
-                        Vector3 pos = Vector3.Lerp(center, medium, 0.5f);
-
-                        centerPositions.Add(pos);
-                    }
-                    else
-                    {
-                        if (Vector3.Distance(pointIndex[i].Item1, pointIndex[i + 1].Item1) > Vector3.Distance(pointIndex[i].Item1, center))
-                            continue;
-
-                        Vector3 point1 = Vector3.Lerp((pointIndex[i].Item1 + pointIndex[i + 1].Item1) / 2f, center, 0.5f);
-                        centerPositions.Add(point1);
-                        Vector3 point2 = Vector3.LerpUnclamped(point1, center, 2);
-                        centerPositions.Add(point2);
-                    }
-                }
-            }
-
-            for (int i = 0; i < pointIndex.Count; i++)
-            {
-                if (indexPositions.ContainsKey(pointIndex[i].Item2))
-                    continue;
-
-                Vector3 p1 = Vector3.zero;
-                Vector3 p2 = Vector3.zero;
-                float minDistance1 = float.MaxValue;
-                float minDistance2 = float.MaxValue;
-                for (int j = 0; j < centerPositions.Count; j++)
-                {
-                    float dist = Vector3.Distance(centerPositions[j], pointIndex[i].Item1);
-
-                    if (dist < minDistance1)
-                    {
-                        p2 = p1;
-                        minDistance2 = minDistance1;
-
-                        p1 = centerPositions[j];
-                        minDistance1 = dist;
-                    }
-                    else if (dist < minDistance2)
-                    {
-                        p2 = centerPositions[j];
-                        minDistance2 = dist;
-                    }
-                }
-                indexPositions.Add(pointIndex[i].Item2, new List<Vector3>() { p1, p2 });
-            }
-
-            int lenght = verts.Count;
-
-            List<(Vector3, float)> correctlySorted = new List<(Vector3, float)>();
-            for (int i = 0; i < centerPositions.Count; i++)
-            {
-                Vector3 dir = centerPositions[i] - center;
+                Vector3 dir = anglePosIndex[i].Item2 - center;
                 float angle = Mathf.Atan2(dir.y, dir.x);
-                correctlySorted.Add((centerPositions[i], angle));
+                anglePosIndex[i] = ((angle, anglePosIndex[i].Item2, anglePosIndex[i].Item3));
             }
-            correctlySorted.Sort((a, b) => a.Item2.CompareTo(b.Item2));
-            centerPositions = new List<Vector3>();
-            for (int i = 0; i < correctlySorted.Count; i++)
+            anglePosIndex.Sort((a, b) => a.Item1.CompareTo(b.Item1));
+
+            List<Vector3> points = new List<Vector3>();
+            for (int i = 0; i < anglePosIndex.Count; i++)
             {
-                centerPositions.Add(correctlySorted[i].Item1);
+                points.Add(anglePosIndex[i].Item2);
             }
 
-            verts.AddRange(centerPositions);
-            tris.AddRange(new List<int>() { lenght + 2, lenght + 1, lenght + 0, lenght + 3, lenght + 2, lenght + 0 });
-            uvs.AddRange(new List<Vector2>() { new Vector2(0.5f, 1f), new Vector2(0.5f, 0f), new Vector2(1, 1f), new Vector2(1, 0f) });
-
-            foreach (KeyValuePair<Vector2, List<Vector3>> point in indexPositions)
+            int pointsOffsets = verts.Count;
+            for (int j = 1; j <= points.Count; j++)
             {
-                Debug.Log("activated");
-                Vector3 mid = Vector3.zero;
-                correctlySorted = new List<(Vector3, float)>();
-                correctlySorted.Add((point.Value[0], 0));
-                correctlySorted.Add((point.Value[1], 0));
-                mid += point.Value[0];
-                mid += point.Value[1];
-
-                if (point.Key.y == 0)
-                {
-                    correctlySorted.Add((kvp.Value[(int)point.Key.x].list1[0], 0));
-                    correctlySorted.Add((kvp.Value[(int)point.Key.x].list2[0], 0));
-                    mid += kvp.Value[(int)point.Key.x].list1[0];
-                    mid += kvp.Value[(int)point.Key.x].list2[0];
-                }
+                verts.Add(center);
+                verts.Add(points[j - 1]);
+                if (j == points.Count)
+                    verts.Add(points[0]);
                 else
-                {
-                    correctlySorted.Add((kvp.Value[(int)point.Key.x].list1[kvp.Value[(int)point.Key.x].list1.Count - 1], 0));
-                    correctlySorted.Add((kvp.Value[(int)point.Key.x].list2[kvp.Value[(int)point.Key.x].list2.Count - 1], 0));
-                    mid += kvp.Value[(int)point.Key.x].list1[kvp.Value[(int)point.Key.x].list1.Count - 1];
-                    mid += kvp.Value[(int)point.Key.x].list2[kvp.Value[(int)point.Key.x].list2.Count - 1];
-                }
-                mid = mid / 4f;
+                    verts.Add(points[j]);
 
-                for (int i = 0; i < correctlySorted.Count; i++)
-                {
-                    Vector3 dir = correctlySorted[i].Item1 - mid;
-                    float angle = Mathf.Atan2(dir.y, dir.x);
-                    correctlySorted[i] = (correctlySorted[i].Item1, angle);
-                }
-                correctlySorted.Sort((a, b) => a.Item2.CompareTo(b.Item2));
-
-                Vector3 p1 = correctlySorted[0].Item1;
-                Vector3 p2 = correctlySorted[1].Item1;
-                Vector3 p3 = correctlySorted[2].Item1;
-                Vector3 p4 = correctlySorted[3].Item1;
-
-                offset = verts.Count;
-                int t1 = offset + 2;
-                int t2 = offset + 1;
-                int t3 = offset + 0;
-
-                int t4 = offset + 3;
-                int t5 = offset + 2;
-                int t6 = offset + 0;
-
-                verts.AddRange(new List<Vector3>() { p1, p2, p3, p4 });
-                tris.AddRange(new List<int>() { t1, t2, t3, t4, t5, t6 });
-                uvs.AddRange(new List<Vector2>() { new Vector2(0f, 1f), new Vector2(0.5f, 1f), new Vector2(0.5f, 0f), new Vector2(0f, 0f) });
-
+                tris.Add(pointsOffsets + ((j - 1) * 3) + 2);
+                tris.Add(pointsOffsets + ((j - 1) * 3) + 1);
+                tris.Add(pointsOffsets + ((j - 1) * 3) + 0);
             }
 
 
-            testpos = indexPositions;
-            testCeneter = centerPositions;
         }
 
         mesh.SetVertices(verts);
