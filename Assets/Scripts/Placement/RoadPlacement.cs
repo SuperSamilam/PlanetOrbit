@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Xml;
 using Unity.VisualScripting;
 using UnityEngine;
 
@@ -964,7 +965,6 @@ public class RoadPlacement : MonoBehaviour
                 }
             }
 
-
         }
     }
 
@@ -1117,9 +1117,6 @@ public class RoadPlacement : MonoBehaviour
         uvs = new List<Vector2>();
         mesh = new Mesh();
 
-        //Vector2[] offsets = [new Vector2()]
-        float halfWidth = roadWitdh / 2f;
-
         foreach (KeyValuePair<Vector3, List<Roads>> kvp in Roads.intersection)
         {
             Vector3 center = kvp.Key;
@@ -1230,39 +1227,61 @@ public class RoadPlacement : MonoBehaviour
 
             verts.AddRange(centerPositions);
             tris.AddRange(new List<int>() { lenght + 2, lenght + 1, lenght + 0, lenght + 3, lenght + 2, lenght + 0 });
+            uvs.AddRange(new List<Vector2>() { new Vector2(0.5f, 1f), new Vector2(0.5f, 0f), new Vector2(1, 1f), new Vector2(1, 0f) });
 
-            // foreach (KeyValuePair<Vector2, List<Vector3>> point in indexPositions)
-            // {
-            //     Debug.Log("activated");
-            //     offset = verts.Count;
-            //     Vector3 p1 = point.Value[0];
-            //     Vector3 p2 = point.Value[1];
-            //     Vector3 p3;
-            //     Vector3 p4;
+            foreach (KeyValuePair<Vector2, List<Vector3>> point in indexPositions)
+            {
+                Debug.Log("activated");
+                Vector3 mid = Vector3.zero;
+                correctlySorted = new List<(Vector3, float)>();
+                correctlySorted.Add((point.Value[0], 0));
+                correctlySorted.Add((point.Value[1], 0));
+                mid += point.Value[0];
+                mid += point.Value[1];
 
-            //     if (point.Key.y == 0)
-            //     {
-            //         p3 = kvp.Value[(int)point.Key.x].list1[0];
-            //         p4 = kvp.Value[(int)point.Key.x].list2[0];
-            //     }
-            //     else
-            //     {
-            //         p3 = kvp.Value[(int)point.Key.x].list1[kvp.Value[(int)point.Key.x].list1.Count - 1];
-            //         p4 = kvp.Value[(int)point.Key.x].list2[kvp.Value[(int)point.Key.x].list2.Count - 1];
-            //     }
+                if (point.Key.y == 0)
+                {
+                    correctlySorted.Add((kvp.Value[(int)point.Key.x].list1[0], 0));
+                    correctlySorted.Add((kvp.Value[(int)point.Key.x].list2[0], 0));
+                    mid += kvp.Value[(int)point.Key.x].list1[0];
+                    mid += kvp.Value[(int)point.Key.x].list2[0];
+                }
+                else
+                {
+                    correctlySorted.Add((kvp.Value[(int)point.Key.x].list1[kvp.Value[(int)point.Key.x].list1.Count - 1], 0));
+                    correctlySorted.Add((kvp.Value[(int)point.Key.x].list2[kvp.Value[(int)point.Key.x].list2.Count - 1], 0));
+                    mid += kvp.Value[(int)point.Key.x].list1[kvp.Value[(int)point.Key.x].list1.Count - 1];
+                    mid += kvp.Value[(int)point.Key.x].list2[kvp.Value[(int)point.Key.x].list2.Count - 1];
+                }
+                mid = mid / 4f;
 
-            //     int t1 = offset + 0;
-            //     int t2 = offset + 1;
-            //     int t3 = offset + 2;
+                for (int i = 0; i < correctlySorted.Count; i++)
+                {
+                    Vector3 dir = correctlySorted[i].Item1 - mid;
+                    float angle = Mathf.Atan2(dir.y, dir.x);
+                    correctlySorted[i] = (correctlySorted[i].Item1, angle);
+                }
+                correctlySorted.Sort((a, b) => a.Item2.CompareTo(b.Item2));
 
-            //     int t4 = offset + 3;
-            //     int t5 = offset + 2;
-            //     int t6 = offset + 1;
+                Vector3 p1 = correctlySorted[0].Item1;
+                Vector3 p2 = correctlySorted[1].Item1;
+                Vector3 p3 = correctlySorted[2].Item1;
+                Vector3 p4 = correctlySorted[3].Item1;
 
-            //     verts.AddRange(new List<Vector3>() { p1, p2, p3, p4 });
-            //     tris.AddRange(new List<int>() { t1, t2, t3, t4, t5, t6 });
+                offset = verts.Count;
+                int t1 = offset + 2;
+                int t2 = offset + 1;
+                int t3 = offset + 0;
 
-            // }
+                int t4 = offset + 3;
+                int t5 = offset + 2;
+                int t6 = offset + 0;
+
+                verts.AddRange(new List<Vector3>() { p1, p2, p3, p4 });
+                tris.AddRange(new List<int>() { t1, t2, t3, t4, t5, t6 });
+                uvs.AddRange(new List<Vector2>() { new Vector2(0f, 1f), new Vector2(0.5f, 1f), new Vector2(0.5f, 0f), new Vector2(0f, 0f) });
+
+            }
 
 
             testpos = indexPositions;
@@ -1271,7 +1290,7 @@ public class RoadPlacement : MonoBehaviour
 
         mesh.SetVertices(verts);
         mesh.SetTriangles(tris, 0);
-        //mesh.SetUVs(0, uvs);
+        mesh.SetUVs(0, uvs);
         mesh.RecalculateNormals();
         intersectionMesh.mesh = mesh;
     }
