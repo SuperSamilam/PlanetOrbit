@@ -48,6 +48,8 @@ public class RoadPlacement : MonoBehaviour
     Dictionary<Vector2, List<Vector3>> testpos = new Dictionary<Vector2, List<Vector3>>();
     List<Vector3> testCeneter = new List<Vector3>();
 
+    Dictionary<Vector2, List<Vector3>> testCrossings = new();
+
 
 
     public void Update()
@@ -1113,90 +1115,91 @@ public class RoadPlacement : MonoBehaviour
         tris = new List<int>();
         uvs = new List<Vector2>();
         mesh = new Mesh();
+        testCrossings.Clear();
 
         foreach (KeyValuePair<Vector3, List<Roads>> kvp in Roads.intersection)
         {
-            Vector3 center = Vector3.zero;
-            List<(Vector3, int)> pointIndex = new();
+            List<(Vector3, Vector2)> pointIndex = new();
             List<(float, Vector3, int)> anglePosIndex = new();
 
             for (int i = 0; i < kvp.Value.Count; i++)
             {
                 if (Vector3.Distance(kvp.Value[i].points[0].pos, kvp.Key) > Vector3.Distance(kvp.Value[i].points[kvp.Value[i].points.Count - 1].pos, kvp.Key))
                 {
-                    pointIndex.Add((kvp.Value[i].list1[kvp.Value[i].list1.Count - 1], i));
-                    pointIndex.Add((kvp.Value[i].list2[kvp.Value[i].list2.Count - 1], i));
-                    center += kvp.Value[i].list1[kvp.Value[i].list1.Count - 1];
-                    center += kvp.Value[i].list2[kvp.Value[i].list2.Count - 1];
+                    pointIndex.Add((kvp.Value[i].list1[kvp.Value[i].list1.Count - 1], new Vector2(i, kvp.Value[i].list1.Count - 1)));
+                    pointIndex.Add((kvp.Value[i].list2[kvp.Value[i].list2.Count - 1], new Vector2(i, kvp.Value[i].list1.Count - 1)));
                 }
                 else
                 {
-                    pointIndex.Add((kvp.Value[i].list1[0], i));
-                    pointIndex.Add((kvp.Value[i].list2[0], i));
-                    center += kvp.Value[i].list1[0];
-                    center += kvp.Value[i].list2[0];
+                    pointIndex.Add((kvp.Value[i].list1[0], new Vector2(i, 0)));
+                    pointIndex.Add((kvp.Value[i].list2[0], new Vector2(i, 0)));
                 }
             }
-            center = center / pointIndex.Count;
+
+            Dictionary<Vector2, List<Vector3>> crossings = new Dictionary<Vector2, List<Vector3>>();
+            for (int i = 0; i < pointIndex.Count; i += 2)
+            {
+                List<Vector3> roadCrossings = new List<Vector3>();
+                if (pointIndex[i].Item2.y == 0)
+                {
+                    roadCrossings.Add(Vector3.LerpUnclamped(kvp.Value[(int)pointIndex[i].Item2.x].list1[(int)pointIndex[i].Item2.y + 1], pointIndex[i].Item1, 1.5f));
+                    roadCrossings.Add(Vector3.LerpUnclamped(kvp.Value[(int)pointIndex[i].Item2.x].list2[(int)pointIndex[i].Item2.y + 1], pointIndex[i + 1].Item1, 1.5f));
+                    roadCrossings.Add(pointIndex[i + 1].Item1);
+                    roadCrossings.Add(pointIndex[i].Item1);
+                    anglePosIndex.Add((0, Vector3.LerpUnclamped(kvp.Value[(int)pointIndex[i].Item2.x].list1[(int)pointIndex[i].Item2.y + 1], pointIndex[i].Item1, 1.5f), (int)pointIndex[i].Item2.x));
+                    anglePosIndex.Add((0, Vector3.LerpUnclamped(kvp.Value[(int)pointIndex[i].Item2.x].list2[(int)pointIndex[i].Item2.y + 1], pointIndex[i + 1].Item1, 1.5f), (int)pointIndex[i].Item2.x));
+                }
+                else
+                {
+                    roadCrossings.Add(pointIndex[i].Item1);
+                    roadCrossings.Add(pointIndex[i + 1].Item1);
+                    roadCrossings.Add(Vector3.LerpUnclamped(kvp.Value[(int)pointIndex[i].Item2.x].list2[(int)pointIndex[i].Item2.y - 1], pointIndex[i + 1].Item1, 1.5f));
+                    roadCrossings.Add(Vector3.LerpUnclamped(kvp.Value[(int)pointIndex[i].Item2.x].list1[(int)pointIndex[i].Item2.y - 1], pointIndex[i].Item1, 1.5f));
+                    anglePosIndex.Add((0, Vector3.LerpUnclamped(kvp.Value[(int)pointIndex[i].Item2.x].list2[(int)pointIndex[i].Item2.y - 1], pointIndex[i + 1].Item1, 1.5f), (int)pointIndex[i].Item2.x));
+                    anglePosIndex.Add((0, Vector3.LerpUnclamped(kvp.Value[(int)pointIndex[i].Item2.x].list1[(int)pointIndex[i].Item2.y - 1], pointIndex[i].Item1, 1.5f), (int)pointIndex[i].Item2.x));
+                }
+                crossings.Add(pointIndex[i].Item2, roadCrossings);
+            }
+
+            foreach (KeyValuePair<Vector2, List<Vector3>> crossing in crossings)
+            {
+                int vertOffset = verts.Count;
+                verts.AddRange(crossing.Value);
+                tris.AddRange(new List<int>() { 0 + vertOffset, 1 + vertOffset, 2 + vertOffset, 0 + vertOffset, 2 + vertOffset, 3 + vertOffset });
+                uvs.AddRange(new List<Vector2>(){new Vector2(0f,1f),new Vector2(0f,0f),new Vector2(0.5f,0f),new Vector2(0.5f,1f)});
+            }
+            //new Vector2(0f,0f),new Vector2(0.5f,0f),new Vector2(0.5f,1f),new Vector2(0f,1f)});
+            Vector3 center = Vector3.zero;
+            for (int i = 0; i < anglePosIndex.Count; i++)
+            {
+                center += anglePosIndex[i].Item2;
+            }
+            center = center / anglePosIndex.Count;
 
             //Sorting the points
-            for (int i = 0; i < pointIndex.Count; i++)
-            {
-                Vector3 dir = pointIndex[i].Item1 - center;
-                float angle = Mathf.Atan2(dir.y, dir.x);
-                anglePosIndex.Add((angle, pointIndex[i].Item1, pointIndex[i].Item2));
-            }
-            anglePosIndex.Sort((a, b) => a.Item1.CompareTo(b.Item1));
-
-            int lenght = anglePosIndex.Count - 1;
-            for (int i = 0; i < lenght; i++)
-            {
-                if (anglePosIndex[i].Item3 != anglePosIndex[i + 1].Item3)
-                {
-                    if (Vector3.Distance(anglePosIndex[i].Item2, anglePosIndex[i + 1].Item2) > 0.03f)
-                        continue;
-
-                    Vector3 midPoint = Vector3.Lerp(Vector3.Lerp(anglePosIndex[i].Item2, anglePosIndex[i + 1].Item2, 0.5f), center, 0.6f);
-                    for (int j = 1; j < 3; j++)
-                    {
-                        Vector3 lerp1 = Vector3.Lerp(anglePosIndex[i].Item2, midPoint, j / 3f);
-                        Vector3 lerp2 = Vector3.Lerp(midPoint, anglePosIndex[i + 1].Item2, j / 3f);
-                        Vector3 pos = Vector3.Lerp(lerp1, lerp2, j / 3f);
-                        anglePosIndex.Add((0, pos, 0));
-                    }
-                }
-            }
-
             for (int i = 0; i < anglePosIndex.Count; i++)
             {
                 Vector3 dir = anglePosIndex[i].Item2 - center;
                 float angle = Mathf.Atan2(dir.y, dir.x);
-                anglePosIndex[i] = ((angle, anglePosIndex[i].Item2, anglePosIndex[i].Item3));
+                anglePosIndex[i] = (angle, anglePosIndex[i].Item2, anglePosIndex[i].Item3);
             }
             anglePosIndex.Sort((a, b) => a.Item1.CompareTo(b.Item1));
 
-            List<Vector3> points = new List<Vector3>();
-            for (int i = 0; i < anglePosIndex.Count; i++)
-            {
-                points.Add(anglePosIndex[i].Item2);
-            }
-
             int pointsOffsets = verts.Count;
-            for (int j = 1; j <= points.Count; j++)
+            for (int j = 1; j <= anglePosIndex.Count; j++)
             {
                 verts.Add(center);
-                verts.Add(points[j - 1]);
-                if (j == points.Count)
-                    verts.Add(points[0]);
+                verts.Add(anglePosIndex[j - 1].Item2);
+                if (j == anglePosIndex.Count)
+                    verts.Add(anglePosIndex[0].Item2);
                 else
-                    verts.Add(points[j]);
+                    verts.Add(anglePosIndex[j].Item2);
 
                 tris.Add(pointsOffsets + ((j - 1) * 3) + 2);
                 tris.Add(pointsOffsets + ((j - 1) * 3) + 1);
                 tris.Add(pointsOffsets + ((j - 1) * 3) + 0);
+                uvs.AddRange(new List<Vector2>(){new Vector2(0,0),new Vector2(0,0),new Vector2(0,0)});
             }
-
-
         }
 
         mesh.SetVertices(verts);
@@ -1268,40 +1271,40 @@ public class RoadPlacement : MonoBehaviour
     void OnDrawGizmos()
     {
 
-        for (int i = 0; i < testCeneter.Count; i++)
-        {
-            if (i == 0)
-                Gizmos.color = Color.yellow;
-            if (i == 1)
-                Gizmos.color = Color.black;
-            if (i == 2)
-                Gizmos.color = Color.blue;
-            if (i == 3)
-                Gizmos.color = Color.white;
-            Gizmos.DrawSphere(testCeneter[i], 0.006f);
-        }
-
-        // int count = 0;
-        // float size = 0.005f;
-        // foreach (KeyValuePair<Vector2, List<Vector3>> kvp in testpos)
+        // for (int i = 0; i < testCeneter.Count; i++)
         // {
-        //     if (count == 0)
+        //     if (i == 0)
         //         Gizmos.color = Color.yellow;
-        //     if (count == 1)
+        //     if (i == 1)
         //         Gizmos.color = Color.black;
-        //     if (count == 2)
+        //     if (i == 2)
         //         Gizmos.color = Color.blue;
-        //     if (count == 3)
+        //     if (i == 3)
         //         Gizmos.color = Color.white;
-
-        //     //Debug.Log(kvp.Value.Count);
-        //     for (int i = 0; i < kvp.Value.Count; i++)
-        //     {
-        //         Gizmos.DrawSphere(kvp.Value[i], size);
-        //     }
-        //     count++;
-        //     size = size - 0.001f;
+        //     Gizmos.DrawSphere(testCeneter[i], 0.006f);
         // }
+
+        int count = 0;
+        float size = 0.005f;
+        foreach (KeyValuePair<Vector2, List<Vector3>> kvp in testCrossings)
+        {
+            if (count == 0)
+                Gizmos.color = Color.yellow;
+            if (count == 1)
+                Gizmos.color = Color.black;
+            if (count == 2)
+                Gizmos.color = Color.blue;
+            if (count == 3)
+                Gizmos.color = Color.white;
+
+            //Debug.Log(kvp.Value.Count);
+            for (int i = 0; i < kvp.Value.Count; i++)
+            {
+                Gizmos.DrawSphere(kvp.Value[i], size);
+            }
+            count++;
+            size = size - 0.001f;
+        }
 
 
 
