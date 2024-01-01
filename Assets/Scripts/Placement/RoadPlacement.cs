@@ -1,5 +1,9 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
+using Unity.Mathematics;
 using Unity.VisualScripting;
+using UnityEditor;
 using UnityEngine;
 
 
@@ -20,11 +24,29 @@ public class RoadPlacement : MonoBehaviour
     [SerializeField] float MaxCurveThres = 0.03f;
     [SerializeField] int curveStrenght = 3;
 
-    [Header("General")]
-    [SerializeField] float snapingDist = 0.03f;
+    [Header("Bridge")]
+    [SerializeField] MeshFilter bridgeObject;
+    [SerializeField] float maxBridgeLenght = 0.3f;
+
+    [Header("Colliders")]
+    [SerializeField] MeshCollider roadCollider;
+    [SerializeField] MeshCollider interSectionCollider;
+    [SerializeField] MeshCollider bridgeCollider;
+
+    [Header("Filters")]
     [SerializeField] MeshFilter roadMesh;
     [SerializeField] MeshFilter tempMesh;
+    [SerializeField] MeshFilter bridgeMesh;
     [SerializeField] MeshFilter intersectionMesh;
+
+    [Header("LayerMasks")]
+
+    [Header("General")]
+    [SerializeField] LayerMask countryMask;
+    [SerializeField] LayerMask waterMask;
+    [SerializeField] LayerMask roadMask;
+
+    [SerializeField] float snapingDist = 0.03f;
 
     Vector3 mousePos;
     bool haveClicked = false;
@@ -47,10 +69,7 @@ public class RoadPlacement : MonoBehaviour
     List<RoadNode> tempPoints = new List<RoadNode>();
     Dictionary<Vector2, List<Vector3>> testpos = new Dictionary<Vector2, List<Vector3>>();
     List<Vector3> testCeneter = new List<Vector3>();
-
     Dictionary<Vector2, List<Vector3>> testCrossings = new();
-
-
 
     public void Update()
     {
@@ -59,9 +78,10 @@ public class RoadPlacement : MonoBehaviour
 
         Ray ray = camera.ScreenPointToRay(Input.mousePosition);
         RaycastHit hit;
-        if (Physics.Raycast(ray, out hit, Mathf.Infinity))
+        if (Physics.Raycast(ray, out hit, 100f, ~roadMask))
         {
             mousePos = hit.point;
+            canPlace = true;
 
             //check for snaping
             bool shouldSnap = false;
@@ -110,12 +130,20 @@ public class RoadPlacement : MonoBehaviour
                 }
             }
 
-            if (Input.GetMouseButtonDown(0) && !haveClicked)
+            if (Input.GetMouseButtonDown(0) && !haveClicked && hit.transform.gameObject.tag == "Country")
             {
                 firstPos = mousePos;
                 haveClicked = true;
                 if (shouldSnap)
+                {
+                    if (road1.points[index1].brigde)
+                    {
+                        Debug.Log("Cant build a road on a bridge");
+                        resetClick();
+                        return;
+                    }
                     snaping = true;
+                }
                 if (intersectionSnap)
                 {
                     snappingIntersection1 = true;
@@ -133,71 +161,93 @@ public class RoadPlacement : MonoBehaviour
                 float archLenght = angle / 360 * 2 * Mathf.PI * Vector3.Distance(Vector3.zero, firstPos);
                 int numberOfVertices = Mathf.CeilToInt(archLenght / distBetweenPoints);
 
+
+
+                bool isBridge = false;
+                Vector3 brigeStart = Vector3.zero;
+
                 for (int i = 0; i <= numberOfVertices; i++)
                 {
-                    tempPoints.Add(new RoadNode(Vector3.Slerp(firstPos, mousePos, i / (float)numberOfVertices) * 1.005f));
-                }
+                    Vector3 pos = Vector3.Slerp(firstPos, mousePos, i / (float)numberOfVertices) * 3f;
+                    Ray tempRay = new Ray(pos, -pos);
+                    RaycastHit tempHit;
 
-                if (snaping)
-                {
-                    Vector3 pos = new Vector3();
-                    if (index1 == 0)
-                        pos = road1.points[1].pos;
-                    else
-                        pos = road1.points[road1.points.Count - 2].pos;
-
-                    if (tempPoints.Count < 2)
+                    if (Physics.Raycast(tempRay, out tempHit, 1000f))
                     {
-                        canPlace = false;
-                        return;
-                    }
-
-                    Vector3 thispos = tempPoints[1].pos;
-
-                    if (Vector3.Distance(pos, thispos) < curveThres)
-                    {
-                        canPlace = false;
-                        return;
-                    }
-                    canPlace = true;
-                }
-                if (shouldSnap && !intersectionSnap)
-                {
-                    if (index2 == 0 || index2 == road2.points.Count - 1)
-                    {
-                        Vector3 pos = new Vector3();
-                        if (index2 == 0)
-                            pos = road2.points[1].pos;
-                        else
-                            pos = road2.points[road2.points.Count - 2].pos;
-
-                        if (tempPoints.Count < 2)
+                        if (tempHit.transform.gameObject.tag == "Country")
                         {
-                            canPlace = false;
-                            return;
+                            if (Vector3.Distance(Vector3.Slerp(firstPos, mousePos, i / (float)numberOfVertices), tempHit.point * 1.005f) > 0.005f)
+                            {
+                                tempPoints.Add(new RoadNode(Vector3.Slerp(firstPos, mousePos, i / (float)numberOfVertices) * 1.005f));
+                                if (isBridge)
+                                {
+                                    isBridge = false;
+                                    if (Vector3.Distance(Vector3.Slerp(firstPos, mousePos, i / (float)numberOfVertices) * 1.005f, brigeStart) > maxBridgeLenght)
+                                    {
+                                        canPlace = false;
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                tempPoints.Add(new RoadNode(tempHit.point * 1.005f));
+
+                                if (isBridge)
+                                {
+                                    isBridge = false;
+                                    if (Vector3.Distance(Vector3.Slerp(firstPos, mousePos, i / (float)numberOfVertices) * 1.005f, brigeStart) > maxBridgeLenght)
+                                    {
+                                        canPlace = false;
+                                    }
+                                }
+                            }
                         }
-
-                        Vector3 thispos = tempPoints[tempPoints.Count - 2].pos;
-
-                        if (Vector3.Distance(pos, thispos) < curveThres)
+                        else if (tempHit.transform.gameObject.tag == "Water")
                         {
-                            canPlace = false;
-                            return;
+                            if (!isBridge)
+                            {
+                                isBridge = true;
+                                brigeStart = Vector3.Slerp(firstPos, mousePos, i / (float)numberOfVertices) * 1.005f;
+                            }
+                            else if (Vector3.Distance(Vector3.Slerp(firstPos, mousePos, i / (float)numberOfVertices) * 1.005f, brigeStart) > maxBridgeLenght)
+                            {
+                                canPlace = false;
+                            }
+
+                            if (i == numberOfVertices)
+                                canPlace = false;
+
+                            RoadNode node = new RoadNode(Vector3.Slerp(firstPos, mousePos, i / (float)numberOfVertices) * 1.005f);
+                            node.brigde = true;
+                            tempPoints.Add(node);
                         }
-                        canPlace = true;
                     }
                 }
 
-                //if curve connencting to loop dont split the intersection
-                //if anything hits a loop dont curve it
-                //if intersectionpoint hits loop dont split
-                //if intersection hits loop dont split it
+                // for (int i = 1; i < tempPoints.Count - 1; i++)
+                // {
+                //     Collider[] colliders = Physics.OverlapBox(tempPoints[i].pos, new Vector3(distBetweenPoints, distBetweenPoints, roadWitdh), Quaternion.LookRotation(tempPoints[i + 1].pos, tempPoints[i].pos), ~waterMask);
+
+                //     for (int j = 0; j < colliders.Length; j++)
+                //     {
+                //         if (colliders[j].gameObject.tag != "Country")
+                //         {
+                //             Debug.Log(colliders[j].gameObject.name);
+                //             canPlace = false;
+                //             break;
+                //         }
+                //     }
+                // }
+
 
                 if (tempPoints.Count > 1)
                 {
                     Roads tempRoad = new Roads(tempPoints);
                     BuildTempMesh(tempRoad);
                 }
+
+                if (!canPlace)
+                    return;
                 if (Input.GetMouseButtonDown(0))
                 {
                     List<RoadNode> combPoints = new List<RoadNode>();
@@ -981,8 +1031,8 @@ public class RoadPlacement : MonoBehaviour
         tempMesh.mesh = null;
         GetRoadEdges();
         BuildMesh();
+        BuildBridges();
     }
-
     void GetRoadEdges()
     {
         for (int r = 0; r < roads.Count; r++)
@@ -1046,7 +1096,6 @@ public class RoadPlacement : MonoBehaviour
             }
         }
     }
-
     void BuildMesh()
     {
         Mesh mesh = new Mesh();
@@ -1110,6 +1159,8 @@ public class RoadPlacement : MonoBehaviour
         mesh.SetUVs(0, uvs);
         mesh.RecalculateNormals();
         roadMesh.mesh = mesh;
+        //roadCollider.sharedMesh = roadMesh.mesh;
+        
 
         verts = new List<Vector3>();
         tris = new List<int>();
@@ -1166,7 +1217,7 @@ public class RoadPlacement : MonoBehaviour
                 int vertOffset = verts.Count;
                 verts.AddRange(crossing.Value);
                 tris.AddRange(new List<int>() { 0 + vertOffset, 1 + vertOffset, 2 + vertOffset, 0 + vertOffset, 2 + vertOffset, 3 + vertOffset });
-                uvs.AddRange(new List<Vector2>(){new Vector2(0f,1f),new Vector2(0f,0f),new Vector2(0.5f,0f),new Vector2(0.5f,1f)});
+                uvs.AddRange(new List<Vector2>() { new Vector2(0f, 1f), new Vector2(0f, 0f), new Vector2(0.5f, 0f), new Vector2(0.5f, 1f) });
             }
             //new Vector2(0f,0f),new Vector2(0.5f,0f),new Vector2(0.5f,1f),new Vector2(0f,1f)});
             Vector3 center = Vector3.zero;
@@ -1198,7 +1249,7 @@ public class RoadPlacement : MonoBehaviour
                 tris.Add(pointsOffsets + ((j - 1) * 3) + 2);
                 tris.Add(pointsOffsets + ((j - 1) * 3) + 1);
                 tris.Add(pointsOffsets + ((j - 1) * 3) + 0);
-                uvs.AddRange(new List<Vector2>(){new Vector2(0,0),new Vector2(0,0),new Vector2(0,0)});
+                uvs.AddRange(new List<Vector2>() { new Vector2(0, 0), new Vector2(0, 0), new Vector2(0, 0) });
             }
         }
 
@@ -1207,8 +1258,8 @@ public class RoadPlacement : MonoBehaviour
         mesh.SetUVs(0, uvs);
         mesh.RecalculateNormals();
         intersectionMesh.mesh = mesh;
+        interSectionCollider.sharedMesh = mesh;
     }
-
     void BuildTempMesh(Roads road)
     {
         for (int p = 0; p < road.points.Count; p++)
@@ -1267,21 +1318,56 @@ public class RoadPlacement : MonoBehaviour
         mesh.RecalculateNormals();
         tempMesh.mesh = mesh;
     }
+    void BuildBridges()
+    {
+        Mesh mesh = new Mesh();
+        List<Vector3> verts = new List<Vector3>();
+        List<int> tris = new List<int>();
+        List<Vector2> uvs = new List<Vector2>();
+        int offset = 0;
+
+        for (int r = 0; r < roads.Count; r++)
+        {
+            for (int c = 0; c < roads[r].points.Count; c++)
+            {
+                if (roads[r].points[c].brigde)
+                {
+                    offset = verts.Count;
+                    Quaternion bridgeRotation = Quaternion.LookRotation(roads[r].points[c].pos, roads[r].points[c + 1].pos);
+                    Quaternion bridgeRotation1 = Quaternion.LookRotation(roads[r].points[c + 1].pos);
+                    Quaternion combinedRotation = new Quaternion(0, bridgeRotation.y, bridgeRotation1.z, bridgeRotation.w);
+
+                    //bridgeObject.transform.right = roads[r].points[c+1].pos;
+                    for (int i = 0; i < bridgeObject.sharedMesh.vertices.Length; i++)
+                    {
+                        verts.Add((bridgeRotation * bridgeObject.sharedMesh.vertices[i]) + roads[r].points[c].pos);
+                    }
+                    for (int i = 0; i < bridgeObject.sharedMesh.triangles.Length; i++)
+                    {
+                        tris.Add(bridgeObject.sharedMesh.triangles[i] + offset);
+                    }
+                }
+            }
+        }
+
+        mesh.SetVertices(verts);
+        mesh.SetTriangles(tris, 0);
+        //mesh.SetUVs(0, uvs);
+        mesh.RecalculateNormals();
+
+        bridgeMesh.mesh = mesh;
+    }
 
     void OnDrawGizmos()
     {
-
-        // for (int i = 0; i < testCeneter.Count; i++)
+        // Gizmos.color = Color.blue;
+        // if (tempPoints.Count > 2)
         // {
-        //     if (i == 0)
-        //         Gizmos.color = Color.yellow;
-        //     if (i == 1)
-        //         Gizmos.color = Color.black;
-        //     if (i == 2)
-        //         Gizmos.color = Color.blue;
-        //     if (i == 3)
-        //         Gizmos.color = Color.white;
-        //     Gizmos.DrawSphere(testCeneter[i], 0.006f);
+        //     for (int i = 1; i < tempPoints.Count - 1; i++)
+        //     {
+        //         //Collider[] colliders = Physics.OverlapBox(tempPoints[i].pos, new Vector3(distBetweenPoints/2f, roadWitdh/2f, roadWitdh/2f));
+        //         Gizmos.DrawWireCube(tempPoints[i].pos, new Vector3(distBetweenPoints, roadWitdh, roadWitdh));
+        //     }
         // }
 
         int count = 0;

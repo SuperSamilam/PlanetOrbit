@@ -32,6 +32,7 @@ public class RoadNode
 {
     public Vector3 pos;
     public bool curve;
+    public bool brigde;
 
     public RoadNode(Vector3 pos)
     {

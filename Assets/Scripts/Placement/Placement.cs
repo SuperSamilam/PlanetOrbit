@@ -82,38 +82,6 @@ public class Placement : MonoBehaviour
             rotation += 0.5f;
         }
 
-        Ray sideRay;
-
-        //Shoot 4 rays to the side seeing if anything is placed to the side
-        sideRay = new Ray(prefab.transform.position, prefab.transform.right);
-        if (Physics.Raycast(sideRay, 5, water))
-        {
-            canBuild = false;
-            prefab.transform.GetComponent<MeshRenderer>().material = cantPlaceMat;
-            return;
-        }
-        sideRay = new Ray(prefab.transform.position, prefab.transform.right * -1);
-        if (Physics.Raycast(sideRay, 5, water))
-        {
-            canBuild = false;
-            prefab.transform.GetComponent<MeshRenderer>().material = cantPlaceMat;
-            return;
-        }
-        sideRay = new Ray(prefab.transform.position, prefab.transform.forward);
-        if (Physics.Raycast(sideRay, 5, water))
-        {
-            canBuild = false;
-            prefab.transform.GetComponent<MeshRenderer>().material = cantPlaceMat;
-            return;
-        }
-        sideRay = new Ray(prefab.transform.position, prefab.transform.forward * -1);
-        if (Physics.Raycast(sideRay, 5, water))
-        {
-            canBuild = false;
-            prefab.transform.GetComponent<MeshRenderer>().material = cantPlaceMat;
-            return;
-        }
-
         //place the building
         if (canBuild && Input.GetMouseButtonDown(0))
         {
