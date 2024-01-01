@@ -172,7 +172,7 @@ public class RoadPlacement : MonoBehaviour
                     Ray tempRay = new Ray(pos, -pos);
                     RaycastHit tempHit;
 
-                    if (Physics.Raycast(tempRay, out tempHit, 1000f))
+                    if (Physics.Raycast(tempRay, out tempHit, 1000f, ~roadMask))
                     {
                         if (tempHit.transform.gameObject.tag == "Country")
                         {
@@ -224,20 +224,20 @@ public class RoadPlacement : MonoBehaviour
                     }
                 }
 
-                // for (int i = 1; i < tempPoints.Count - 1; i++)
-                // {
-                //     Collider[] colliders = Physics.OverlapBox(tempPoints[i].pos, new Vector3(distBetweenPoints, distBetweenPoints, roadWitdh), Quaternion.LookRotation(tempPoints[i + 1].pos, tempPoints[i].pos), ~waterMask);
+                for (int i = 1; i < tempPoints.Count - 1; i++)
+                {
+                    Collider[] colliders = Physics.OverlapBox(tempPoints[i].pos, new Vector3(roadWitdh, roadWitdh*1.5f, roadWitdh), Quaternion.LookRotation(tempPoints[i + 1].pos, tempPoints[i].pos), ~waterMask);
 
-                //     for (int j = 0; j < colliders.Length; j++)
-                //     {
-                //         if (colliders[j].gameObject.tag != "Country")
-                //         {
-                //             Debug.Log(colliders[j].gameObject.name);
-                //             canPlace = false;
-                //             break;
-                //         }
-                //     }
-                // }
+                    for (int j = 0; j < colliders.Length; j++)
+                    {
+                        if (colliders[j].gameObject.tag != "Country")
+                        {
+                            Debug.Log(colliders[j].gameObject.name);
+                            canPlace = false;
+                            break;
+                        }
+                    }
+                }
 
 
                 if (tempPoints.Count > 1)
@@ -1159,8 +1159,8 @@ public class RoadPlacement : MonoBehaviour
         mesh.SetUVs(0, uvs);
         mesh.RecalculateNormals();
         roadMesh.mesh = mesh;
-        //roadCollider.sharedMesh = roadMesh.mesh;
-        
+        roadCollider.sharedMesh = roadMesh.mesh;
+
 
         verts = new List<Vector3>();
         tris = new List<int>();
@@ -1360,15 +1360,13 @@ public class RoadPlacement : MonoBehaviour
 
     void OnDrawGizmos()
     {
-        // Gizmos.color = Color.blue;
-        // if (tempPoints.Count > 2)
-        // {
-        //     for (int i = 1; i < tempPoints.Count - 1; i++)
-        //     {
-        //         //Collider[] colliders = Physics.OverlapBox(tempPoints[i].pos, new Vector3(distBetweenPoints/2f, roadWitdh/2f, roadWitdh/2f));
-        //         Gizmos.DrawWireCube(tempPoints[i].pos, new Vector3(distBetweenPoints, roadWitdh, roadWitdh));
-        //     }
-        // }
+        Gizmos.color = Color.blue;
+        for (int i = 1; i < tempPoints.Count - 1; i++)
+        {
+            //Collider[] colliders = Physics.OverlapBox(tempPoints[i].pos, new Vector3(distBetweenPoints/2f, roadWitdh/2f, roadWitdh/2f));
+            Gizmos.DrawWireCube(tempPoints[i].pos, new Vector3(distBetweenPoints, roadWitdh, roadWitdh));
+        }
+
 
         int count = 0;
         float size = 0.005f;
