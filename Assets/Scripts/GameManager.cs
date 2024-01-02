@@ -49,7 +49,7 @@ public class GameManager : MonoBehaviour
     Player currentPlayer;
     int playerIndex;
 
-    void nextPlayer()
+    public void nextPlayer()
     {
         playerIndex++;
         if (playerIndex == players.Count)
