@@ -23,6 +23,7 @@ public class RoadPlacement : MonoBehaviour
     [SerializeField] float curveThres = 0.03f;
     [SerializeField] float MaxCurveThres = 0.03f;
     [SerializeField] int curveStrenght = 3;
+    [SerializeField] float roadCurveStrenght = 0.016f;
 
     [Header("Bridge")]
     [SerializeField] MeshFilter bridgeObject;
@@ -40,13 +41,17 @@ public class RoadPlacement : MonoBehaviour
     [SerializeField] MeshFilter intersectionMesh;
 
     [Header("LayerMasks")]
-
-    [Header("General")]
     [SerializeField] LayerMask countryMask;
     [SerializeField] LayerMask waterMask;
     [SerializeField] LayerMask roadMask;
 
+    [Header("General")]
     [SerializeField] float snapingDist = 0.03f;
+    [SerializeField] GameObject starter;
+    [SerializeField] Material canPlaceMat;
+    [SerializeField] Material cantPlaceMat;
+    [SerializeField] MeshRenderer tempRenderer;
+
 
     Vector3 mousePos;
     bool haveClicked = false;
@@ -67,18 +72,16 @@ public class RoadPlacement : MonoBehaviour
 
     //debug
     List<RoadNode> tempPoints = new List<RoadNode>();
-    Dictionary<Vector2, List<Vector3>> testpos = new Dictionary<Vector2, List<Vector3>>();
-    List<Vector3> testCeneter = new List<Vector3>();
-    Dictionary<Vector2, List<Vector3>> testCrossings = new();
+    Dictionary<Vector2, List<Vector3>> crossings = new();
 
     public void Update()
     {
-        if (Input.GetMouseButtonDown(1))
+        if (Input.GetKeyDown(KeyCode.F))
             resetClick();
 
         Ray ray = camera.ScreenPointToRay(Input.mousePosition);
         RaycastHit hit;
-        if (Physics.Raycast(ray, out hit, 100f, ~roadMask))
+        if (Physics.Raycast(ray, out hit, 10f, ~roadMask))
         {
             mousePos = hit.point;
             canPlace = true;
@@ -130,6 +133,12 @@ public class RoadPlacement : MonoBehaviour
                 }
             }
 
+            if (!haveClicked)
+            {
+                starter.SetActive(true);
+                starter.transform.position = mousePos;
+            }   
+
             if (Input.GetMouseButtonDown(0) && !haveClicked && hit.transform.gameObject.tag == "Country")
             {
                 firstPos = mousePos;
@@ -152,6 +161,7 @@ public class RoadPlacement : MonoBehaviour
             }
             else if (haveClicked)
             {
+                starter.SetActive(false);
                 tempPoints.Clear();
 
                 float dot = Vector3.Dot(firstPos, mousePos);
@@ -223,18 +233,23 @@ public class RoadPlacement : MonoBehaviour
                         }
                     }
                 }
+                if (hit.transform.gameObject.tag == "Water")
+                    canPlace = false;
 
-                for (int i = 1; i < tempPoints.Count - 1; i++)
+                if (canPlace)
                 {
-                    Collider[] colliders = Physics.OverlapBox(tempPoints[i].pos, new Vector3(roadWitdh, roadWitdh*1.5f, roadWitdh), Quaternion.LookRotation(tempPoints[i + 1].pos, tempPoints[i].pos), ~waterMask);
-
-                    for (int j = 0; j < colliders.Length; j++)
+                    for (int i = 1; i < tempPoints.Count - 1; i++)
                     {
-                        if (colliders[j].gameObject.tag != "Country")
+                        Collider[] colliders = Physics.OverlapBox(tempPoints[i].pos, new Vector3(roadWitdh, roadCurveStrenght, roadWitdh), Quaternion.LookRotation(tempPoints[i + 1].pos, tempPoints[i].pos), ~waterMask);
+
+                        for (int j = 0; j < colliders.Length; j++)
                         {
-                            Debug.Log(colliders[j].gameObject.name);
-                            canPlace = false;
-                            break;
+                            if (colliders[j].gameObject.tag != "Country")
+                            {
+                                Debug.Log(colliders[j].gameObject.name);
+                                canPlace = false;
+                                break;
+                            }
                         }
                     }
                 }
@@ -247,7 +262,14 @@ public class RoadPlacement : MonoBehaviour
                 }
 
                 if (!canPlace)
+                {
+                    tempRenderer.material = cantPlaceMat;
                     return;
+                }
+                else
+                {
+                    tempRenderer.material = canPlaceMat;
+                }
                 if (Input.GetMouseButtonDown(0))
                 {
                     List<RoadNode> combPoints = new List<RoadNode>();
@@ -1051,7 +1073,7 @@ public class RoadPlacement : MonoBehaviour
                 if (p != 0 && p + 1 != roads[r].points.Count)
                 {
                     float dist = Vector3.Distance(roads[r].points[p - 1].pos, roads[r].points[p + 1].pos);
-                    if (curveThres < dist && dist < MaxCurveThres && roads[r].points[p].curve)
+                    if (roads[r].points[p].curve)
                     {
                         for (int c = 1; c < curveStrenght; c++)
                         {
@@ -1166,7 +1188,7 @@ public class RoadPlacement : MonoBehaviour
         tris = new List<int>();
         uvs = new List<Vector2>();
         mesh = new Mesh();
-        testCrossings.Clear();
+        crossings.Clear();
 
         foreach (KeyValuePair<Vector3, List<Roads>> kvp in Roads.intersection)
         {
@@ -1370,7 +1392,7 @@ public class RoadPlacement : MonoBehaviour
 
         int count = 0;
         float size = 0.005f;
-        foreach (KeyValuePair<Vector2, List<Vector3>> kvp in testCrossings)
+        foreach (KeyValuePair<Vector2, List<Vector3>> kvp in crossings)
         {
             if (count == 0)
                 Gizmos.color = Color.yellow;

@@ -1,15 +1,10 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.Assertions.Must;
-using UnityEngine.Networking;
 
 public class Placement : MonoBehaviour
 {
     [SerializeField] Transform cameraTransform;
-    [SerializeField] GameObject placeObject;
+    [SerializeField] Building placeObject;
+    [SerializeField] GameObject radiusDisplayer;
     [SerializeField] GameObject hand;
     [SerializeField] LayerMask mask;
     [SerializeField] LayerMask water;
@@ -36,7 +31,8 @@ public class Placement : MonoBehaviour
             Destroy(hand.transform.GetChild(0));
         }
 
-        prefab = Instantiate(placeObject, hand.transform.position, Quaternion.identity);
+        radiusDisplayer.transform.localScale = new Vector3(placeObject.connectionRadius, radiusDisplayer.transform.localScale.y, placeObject.connectionRadius);
+        prefab = Instantiate(placeObject.gameObject, hand.transform.position, Quaternion.identity);
         prefab.transform.parent = hand.transform;
         //handOutline.transform.localScale = 
     }
@@ -48,7 +44,9 @@ public class Placement : MonoBehaviour
             //set the object and the current position and asign teh right mat
             hand.transform.position = hit.point;
             prefab.transform.up = hit.normal;
-            prefab.transform.Rotate(new Vector3(0,1,0), rotation);
+            radiusDisplayer.transform.position = hit.point;
+            radiusDisplayer.transform.up = hit.normal;
+            prefab.transform.Rotate(new Vector3(0, 1, 0), rotation);
             prefab.transform.GetComponent<MeshRenderer>().material = canPlaceMat;
             if (hit.transform.tag != "Country")
             {
@@ -61,6 +59,7 @@ public class Placement : MonoBehaviour
             //dit not hit correctly and assign the fauly material
             hand.transform.position = hit.point;
             prefab.transform.up = hit.normal;
+            radiusDisplayer.SetActive(false);
             prefab.transform.GetComponent<MeshRenderer>().material = cantPlaceMat;
             return;
         }
@@ -70,11 +69,15 @@ public class Placement : MonoBehaviour
         if (Physics.OverlapBox(prefab.transform.position, buildingCollider.size / 2, prefab.transform.rotation, buildingMask).Length != 0)
         {
             canBuild = false;
+            radiusDisplayer.SetActive(false);
             prefab.transform.GetComponent<MeshRenderer>().material = cantPlaceMat;
             return;
         }
         else
+        {
+            radiusDisplayer.SetActive(true);
             canBuild = true;
+        }
 
         //change the rotation
         if (Input.GetKey(KeyCode.R))
@@ -85,7 +88,7 @@ public class Placement : MonoBehaviour
         //place the building
         if (canBuild && Input.GetMouseButtonDown(0))
         {
-            GameObject obj = Instantiate(placeObject, prefab.transform.position, prefab.transform.rotation);
+            GameObject obj = Instantiate(placeObject.gameObject, prefab.transform.position, prefab.transform.rotation);
             obj.layer = LayerMask.NameToLayer("Building");
         }
 
