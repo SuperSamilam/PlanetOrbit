@@ -6,6 +6,7 @@ public class GameManager : MonoBehaviour
 {
     public int playerCount;
     public Material hiddenMaterial;
+    public RoadPlacement roadPlacement;
 
     //[HideInInspector]
     public List<Player> players = new List<Player>();
@@ -46,7 +47,7 @@ public class GameManager : MonoBehaviour
         hideCountys();
     }
 
-    Player currentPlayer;
+    public Player currentPlayer;
     int playerIndex;
 
     public void nextPlayer()
@@ -57,6 +58,8 @@ public class GameManager : MonoBehaviour
 
         currentPlayer = players[playerIndex];
         Debug.Log(currentPlayer.name);
+        roadPlacement.BuildMesh(currentPlayer.countys);
+        roadPlacement.BuildBridges();
         hideCountys();
     }
 

@@ -10,6 +10,7 @@ using UnityEngine;
 public class RoadPlacement : MonoBehaviour
 {
     public Drawmode drawMode;
+    public RoadDisplayMode displayMode;
 
     List<Roads> roads = new List<Roads>();
 
@@ -46,6 +47,8 @@ public class RoadPlacement : MonoBehaviour
     [SerializeField] LayerMask roadMask;
 
     [Header("General")]
+
+    [SerializeField] GameManager manager;
     [SerializeField] float snapingDist = 0.03f;
     [SerializeField] GameObject starter;
     [SerializeField] Material canPlaceMat;
@@ -73,6 +76,7 @@ public class RoadPlacement : MonoBehaviour
     //debug
     List<RoadNode> tempPoints = new List<RoadNode>();
     Dictionary<Vector2, List<Vector3>> crossings = new();
+
 
     public void Update()
     {
@@ -137,7 +141,7 @@ public class RoadPlacement : MonoBehaviour
             {
                 starter.SetActive(true);
                 starter.transform.position = mousePos;
-            }   
+            }
 
             if (Input.GetMouseButtonDown(0) && !haveClicked && hit.transform.gameObject.tag == "Country")
             {
@@ -188,7 +192,7 @@ public class RoadPlacement : MonoBehaviour
                         {
                             if (Vector3.Distance(Vector3.Slerp(firstPos, mousePos, i / (float)numberOfVertices), tempHit.point * 1.005f) > 0.005f)
                             {
-                                tempPoints.Add(new RoadNode(Vector3.Slerp(firstPos, mousePos, i / (float)numberOfVertices) * 1.005f));
+                                tempPoints.Add(new RoadNode(Vector3.Slerp(firstPos, mousePos, i / (float)numberOfVertices) * 1.005f, tempHit.transform.gameObject.name));
                                 if (isBridge)
                                 {
                                     isBridge = false;
@@ -200,7 +204,7 @@ public class RoadPlacement : MonoBehaviour
                             }
                             else
                             {
-                                tempPoints.Add(new RoadNode(tempHit.point * 1.005f));
+                                tempPoints.Add(new RoadNode(tempHit.point * 1.005f, tempHit.transform.gameObject.name));
 
                                 if (isBridge)
                                 {
@@ -227,7 +231,7 @@ public class RoadPlacement : MonoBehaviour
                             if (i == numberOfVertices)
                                 canPlace = false;
 
-                            RoadNode node = new RoadNode(Vector3.Slerp(firstPos, mousePos, i / (float)numberOfVertices) * 1.005f);
+                            RoadNode node = new RoadNode(Vector3.Slerp(firstPos, mousePos, i / (float)numberOfVertices) * 1.005f, "Water");
                             node.brigde = true;
                             tempPoints.Add(node);
                         }
@@ -1052,7 +1056,12 @@ public class RoadPlacement : MonoBehaviour
         index2 = -1;
         tempMesh.mesh = null;
         GetRoadEdges();
-        BuildMesh();
+        if (displayMode == RoadDisplayMode.AllRoads)
+            BuildMesh();
+        else
+        {
+            BuildMesh(manager.currentPlayer.countys);
+        }
         BuildBridges();
     }
     void GetRoadEdges()
@@ -1083,8 +1092,8 @@ public class RoadPlacement : MonoBehaviour
                             right = Vector3.Cross(roads[r].points[p - 1].pos, roads[r].points[p + 1].pos).normalized;
                             Vector3 pos1 = pos + (right * roadWitdh);
                             Vector3 pos2 = pos + (-right * roadWitdh);
-                            roads[r].list1.Add(pos1);
-                            roads[r].list2.Add(pos2);
+                            roads[r].list1.Add(new RoadNode(pos1, roads[r].points[p].country));
+                            roads[r].list2.Add(new RoadNode(pos2, roads[r].points[p].country));
                         }
 
                         continue;
@@ -1094,8 +1103,8 @@ public class RoadPlacement : MonoBehaviour
                     Vector3 p1 = roads[r].points[p].pos + (right * roadWitdh);
                     Vector3 p2 = roads[r].points[p].pos + (-right * roadWitdh);
 
-                    roads[r].list1.Add(p1);
-                    roads[r].list2.Add(p2);
+                    roads[r].list1.Add(new RoadNode(p1, roads[r].points[p].country));
+                    roads[r].list2.Add(new RoadNode(p2, roads[r].points[p].country));
                 }
                 else if (p == 0)
                 {
@@ -1103,8 +1112,8 @@ public class RoadPlacement : MonoBehaviour
                     Vector3 p1 = roads[r].points[p].pos + (right * roadWitdh);
                     Vector3 p2 = roads[r].points[p].pos + (-right * roadWitdh);
 
-                    roads[r].list1.Add(p1);
-                    roads[r].list2.Add(p2);
+                    roads[r].list1.Add(new RoadNode(p1, roads[r].points[p].country));
+                    roads[r].list2.Add(new RoadNode(p2, roads[r].points[p].country));
                 }
                 else
                 {
@@ -1112,8 +1121,8 @@ public class RoadPlacement : MonoBehaviour
                     Vector3 p1 = roads[r].points[p].pos + (right * roadWitdh);
                     Vector3 p2 = roads[r].points[p].pos + (-right * roadWitdh);
 
-                    roads[r].list1.Add(p2);
-                    roads[r].list2.Add(p1);
+                    roads[r].list1.Add(new RoadNode(p2, roads[r].points[p].country));
+                    roads[r].list2.Add(new RoadNode(p1, roads[r].points[p].country));
                 }
             }
         }
@@ -1132,10 +1141,10 @@ public class RoadPlacement : MonoBehaviour
         {
             for (int p = 1; p < roads[r].list1.Count; p++)
             {
-                Vector3 p1 = roads[r].list1[p - 1];
-                Vector3 p2 = roads[r].list2[p - 1];
-                Vector3 p3 = roads[r].list1[p];
-                Vector3 p4 = roads[r].list2[p];
+                Vector3 p1 = roads[r].list1[p - 1].pos;
+                Vector3 p2 = roads[r].list2[p - 1].pos;
+                Vector3 p3 = roads[r].list1[p].pos;
+                Vector3 p4 = roads[r].list2[p].pos;
 
                 offset = 4 * totalCount + extraOffset;
 
@@ -1155,10 +1164,10 @@ public class RoadPlacement : MonoBehaviour
             }
             if (roads[r].loop)
             {
-                Vector3 p1 = roads[r].list1[roads[r].list1.Count - 1];
-                Vector3 p2 = roads[r].list2[roads[r].list2.Count - 1];
-                Vector3 p3 = roads[r].list1[0];
-                Vector3 p4 = roads[r].list2[0];
+                Vector3 p1 = roads[r].list1[roads[r].list1.Count - 1].pos;
+                Vector3 p2 = roads[r].list2[roads[r].list2.Count - 1].pos;
+                Vector3 p3 = roads[r].list1[0].pos;
+                Vector3 p4 = roads[r].list2[0].pos;
 
                 offset = 4 * totalCount + extraOffset;
 
@@ -1199,13 +1208,13 @@ public class RoadPlacement : MonoBehaviour
             {
                 if (Vector3.Distance(kvp.Value[i].points[0].pos, kvp.Key) > Vector3.Distance(kvp.Value[i].points[kvp.Value[i].points.Count - 1].pos, kvp.Key))
                 {
-                    pointIndex.Add((kvp.Value[i].list1[kvp.Value[i].list1.Count - 1], new Vector2(i, kvp.Value[i].list1.Count - 1)));
-                    pointIndex.Add((kvp.Value[i].list2[kvp.Value[i].list2.Count - 1], new Vector2(i, kvp.Value[i].list1.Count - 1)));
+                    pointIndex.Add((kvp.Value[i].list1[kvp.Value[i].list1.Count - 1].pos, new Vector2(i, kvp.Value[i].list1.Count - 1)));
+                    pointIndex.Add((kvp.Value[i].list2[kvp.Value[i].list2.Count - 1].pos, new Vector2(i, kvp.Value[i].list1.Count - 1)));
                 }
                 else
                 {
-                    pointIndex.Add((kvp.Value[i].list1[0], new Vector2(i, 0)));
-                    pointIndex.Add((kvp.Value[i].list2[0], new Vector2(i, 0)));
+                    pointIndex.Add((kvp.Value[i].list1[0].pos, new Vector2(i, 0)));
+                    pointIndex.Add((kvp.Value[i].list2[0].pos, new Vector2(i, 0)));
                 }
             }
 
@@ -1215,21 +1224,199 @@ public class RoadPlacement : MonoBehaviour
                 List<Vector3> roadCrossings = new List<Vector3>();
                 if (pointIndex[i].Item2.y == 0)
                 {
-                    roadCrossings.Add(Vector3.LerpUnclamped(kvp.Value[(int)pointIndex[i].Item2.x].list1[(int)pointIndex[i].Item2.y + 1], pointIndex[i].Item1, 1.5f));
-                    roadCrossings.Add(Vector3.LerpUnclamped(kvp.Value[(int)pointIndex[i].Item2.x].list2[(int)pointIndex[i].Item2.y + 1], pointIndex[i + 1].Item1, 1.5f));
+                    roadCrossings.Add(Vector3.LerpUnclamped(kvp.Value[(int)pointIndex[i].Item2.x].list1[(int)pointIndex[i].Item2.y + 1].pos, pointIndex[i].Item1, 1.5f));
+                    roadCrossings.Add(Vector3.LerpUnclamped(kvp.Value[(int)pointIndex[i].Item2.x].list2[(int)pointIndex[i].Item2.y + 1].pos, pointIndex[i + 1].Item1, 1.5f));
                     roadCrossings.Add(pointIndex[i + 1].Item1);
                     roadCrossings.Add(pointIndex[i].Item1);
-                    anglePosIndex.Add((0, Vector3.LerpUnclamped(kvp.Value[(int)pointIndex[i].Item2.x].list1[(int)pointIndex[i].Item2.y + 1], pointIndex[i].Item1, 1.5f), (int)pointIndex[i].Item2.x));
-                    anglePosIndex.Add((0, Vector3.LerpUnclamped(kvp.Value[(int)pointIndex[i].Item2.x].list2[(int)pointIndex[i].Item2.y + 1], pointIndex[i + 1].Item1, 1.5f), (int)pointIndex[i].Item2.x));
+                    anglePosIndex.Add((0, Vector3.LerpUnclamped(kvp.Value[(int)pointIndex[i].Item2.x].list1[(int)pointIndex[i].Item2.y + 1].pos, pointIndex[i].Item1, 1.5f), (int)pointIndex[i].Item2.x));
+                    anglePosIndex.Add((0, Vector3.LerpUnclamped(kvp.Value[(int)pointIndex[i].Item2.x].list2[(int)pointIndex[i].Item2.y + 1].pos, pointIndex[i + 1].Item1, 1.5f), (int)pointIndex[i].Item2.x));
                 }
                 else
                 {
                     roadCrossings.Add(pointIndex[i].Item1);
                     roadCrossings.Add(pointIndex[i + 1].Item1);
-                    roadCrossings.Add(Vector3.LerpUnclamped(kvp.Value[(int)pointIndex[i].Item2.x].list2[(int)pointIndex[i].Item2.y - 1], pointIndex[i + 1].Item1, 1.5f));
-                    roadCrossings.Add(Vector3.LerpUnclamped(kvp.Value[(int)pointIndex[i].Item2.x].list1[(int)pointIndex[i].Item2.y - 1], pointIndex[i].Item1, 1.5f));
-                    anglePosIndex.Add((0, Vector3.LerpUnclamped(kvp.Value[(int)pointIndex[i].Item2.x].list2[(int)pointIndex[i].Item2.y - 1], pointIndex[i + 1].Item1, 1.5f), (int)pointIndex[i].Item2.x));
-                    anglePosIndex.Add((0, Vector3.LerpUnclamped(kvp.Value[(int)pointIndex[i].Item2.x].list1[(int)pointIndex[i].Item2.y - 1], pointIndex[i].Item1, 1.5f), (int)pointIndex[i].Item2.x));
+                    roadCrossings.Add(Vector3.LerpUnclamped(kvp.Value[(int)pointIndex[i].Item2.x].list2[(int)pointIndex[i].Item2.y - 1].pos, pointIndex[i + 1].Item1, 1.5f));
+                    roadCrossings.Add(Vector3.LerpUnclamped(kvp.Value[(int)pointIndex[i].Item2.x].list1[(int)pointIndex[i].Item2.y - 1].pos, pointIndex[i].Item1, 1.5f));
+                    anglePosIndex.Add((0, Vector3.LerpUnclamped(kvp.Value[(int)pointIndex[i].Item2.x].list2[(int)pointIndex[i].Item2.y - 1].pos, pointIndex[i + 1].Item1, 1.5f), (int)pointIndex[i].Item2.x));
+                    anglePosIndex.Add((0, Vector3.LerpUnclamped(kvp.Value[(int)pointIndex[i].Item2.x].list1[(int)pointIndex[i].Item2.y - 1].pos, pointIndex[i].Item1, 1.5f), (int)pointIndex[i].Item2.x));
+                }
+                crossings.Add(pointIndex[i].Item2, roadCrossings);
+            }
+
+            foreach (KeyValuePair<Vector2, List<Vector3>> crossing in crossings)
+            {
+                int vertOffset = verts.Count;
+                verts.AddRange(crossing.Value);
+                tris.AddRange(new List<int>() { 0 + vertOffset, 1 + vertOffset, 2 + vertOffset, 0 + vertOffset, 2 + vertOffset, 3 + vertOffset });
+                uvs.AddRange(new List<Vector2>() { new Vector2(0f, 1f), new Vector2(0f, 0f), new Vector2(0.5f, 0f), new Vector2(0.5f, 1f) });
+            }
+            //new Vector2(0f,0f),new Vector2(0.5f,0f),new Vector2(0.5f,1f),new Vector2(0f,1f)});
+            Vector3 center = Vector3.zero;
+            for (int i = 0; i < anglePosIndex.Count; i++)
+            {
+                center += anglePosIndex[i].Item2;
+            }
+            center = center / anglePosIndex.Count;
+
+            //Sorting the points
+            for (int i = 0; i < anglePosIndex.Count; i++)
+            {
+                Vector3 dir = anglePosIndex[i].Item2 - center;
+                float angle = Mathf.Atan2(dir.y, dir.x);
+                anglePosIndex[i] = (angle, anglePosIndex[i].Item2, anglePosIndex[i].Item3);
+            }
+            anglePosIndex.Sort((a, b) => a.Item1.CompareTo(b.Item1));
+
+            int pointsOffsets = verts.Count;
+            for (int j = 1; j <= anglePosIndex.Count; j++)
+            {
+                verts.Add(center);
+                verts.Add(anglePosIndex[j - 1].Item2);
+                if (j == anglePosIndex.Count)
+                    verts.Add(anglePosIndex[0].Item2);
+                else
+                    verts.Add(anglePosIndex[j].Item2);
+
+                tris.Add(pointsOffsets + ((j - 1) * 3) + 2);
+                tris.Add(pointsOffsets + ((j - 1) * 3) + 1);
+                tris.Add(pointsOffsets + ((j - 1) * 3) + 0);
+                uvs.AddRange(new List<Vector2>() { new Vector2(0, 0), new Vector2(0, 0), new Vector2(0, 0) });
+            }
+        }
+
+        mesh.SetVertices(verts);
+        mesh.SetTriangles(tris, 0);
+        mesh.SetUVs(0, uvs);
+        mesh.RecalculateNormals();
+        intersectionMesh.mesh = mesh;
+        interSectionCollider.sharedMesh = mesh;
+    }
+
+    public void BuildMesh(List<County> counties)
+    {
+        Mesh mesh = new Mesh();
+        List<Vector3> verts = new List<Vector3>();
+        List<int> tris = new List<int>();
+        List<Vector2> uvs = new List<Vector2>();
+        int offset = 0;
+        int extraOffset = 0;
+
+        int totalCount = 0;
+        for (int r = 0; r < roads.Count; r++)
+        {
+            for (int p = 1; p < roads[r].list1.Count; p++)
+            {
+                bool found = false;
+                for (int i = 0; i < counties.Count; i++)
+                {
+                    if (counties[i].name == roads[r].list2[p - 1].country)
+                    {
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (!found && roads[r].list2[p - 1].country != "Water")
+                    continue;
+
+                Vector3 p1 = roads[r].list1[p - 1].pos;
+                Vector3 p2 = roads[r].list2[p - 1].pos;
+                Vector3 p3 = roads[r].list1[p].pos;
+                Vector3 p4 = roads[r].list2[p].pos;
+
+                offset = 4 * totalCount + extraOffset;
+
+                int t1 = offset + 0;
+                int t2 = offset + 1;
+                int t3 = offset + 2;
+
+                int t4 = offset + 3;
+                int t5 = offset + 2;
+                int t6 = offset + 1;
+
+                verts.AddRange(new List<Vector3> { p1, p2, p3, p4 });
+                tris.AddRange(new List<int> { t1, t2, t3, t4, t5, t6 });
+
+                uvs.AddRange(new List<Vector2> { new Vector2(0, 0), new Vector2(0, 1), new Vector2(1, 0), new Vector2(1, 1) });
+                totalCount++;
+            }
+            if (roads[r].loop)
+            {
+                Vector3 p1 = roads[r].list1[roads[r].list1.Count - 1].pos;
+                Vector3 p2 = roads[r].list2[roads[r].list2.Count - 1].pos;
+                Vector3 p3 = roads[r].list1[0].pos;
+                Vector3 p4 = roads[r].list2[0].pos;
+
+                offset = 4 * totalCount + extraOffset;
+
+                int t1 = offset + 0;
+                int t2 = offset + 1;
+                int t3 = offset + 2;
+
+                int t4 = offset + 3;
+                int t5 = offset + 2;
+                int t6 = offset + 1;
+                verts.AddRange(new List<Vector3> { p1, p2, p3, p4 });
+                tris.AddRange(new List<int> { t1, t2, t3, t4, t5, t6 });
+                uvs.AddRange(new List<Vector2> { new Vector2(0, 0), new Vector2(0, 1), new Vector2(1, 0), new Vector2(1, 1) });
+                extraOffset += 4;
+
+            }
+        }
+        mesh.SetVertices(verts);
+        mesh.SetTriangles(tris, 0);
+        mesh.SetUVs(0, uvs);
+        mesh.RecalculateNormals();
+        roadMesh.mesh = mesh;
+        roadCollider.sharedMesh = roadMesh.mesh;
+
+
+        verts = new List<Vector3>();
+        tris = new List<int>();
+        uvs = new List<Vector2>();
+        mesh = new Mesh();
+        crossings.Clear();
+
+        foreach (KeyValuePair<Vector3, List<Roads>> kvp in Roads.intersection)
+        {
+            List<(Vector3, Vector2)> pointIndex = new();
+            List<(float, Vector3, int)> anglePosIndex = new();
+
+            for (int i = 0; i < kvp.Value.Count; i++)
+            {
+                if (Vector3.Distance(kvp.Value[i].points[0].pos, kvp.Key) > Vector3.Distance(kvp.Value[i].points[kvp.Value[i].points.Count - 1].pos, kvp.Key))
+                {
+                    pointIndex.Add((kvp.Value[i].list1[kvp.Value[i].list1.Count - 1].pos, new Vector2(i, kvp.Value[i].list1.Count - 1)));
+                    pointIndex.Add((kvp.Value[i].list2[kvp.Value[i].list2.Count - 1].pos, new Vector2(i, kvp.Value[i].list1.Count - 1)));
+                }
+                else
+                {
+                    pointIndex.Add((kvp.Value[i].list1[0].pos, new Vector2(i, 0)));
+                    pointIndex.Add((kvp.Value[i].list2[0].pos, new Vector2(i, 0)));
+                }
+            }
+
+            Dictionary<Vector2, List<Vector3>> crossings = new Dictionary<Vector2, List<Vector3>>();
+            for (int i = 0; i < pointIndex.Count; i += 2)
+            {
+                List<Vector3> roadCrossings = new List<Vector3>();
+                if (pointIndex[i].Item2.y == 0)
+                {
+                    roadCrossings.Add(Vector3.LerpUnclamped(kvp.Value[(int)pointIndex[i].Item2.x].list1[(int)pointIndex[i].Item2.y + 1].pos, pointIndex[i].Item1, 1.5f));
+                    roadCrossings.Add(Vector3.LerpUnclamped(kvp.Value[(int)pointIndex[i].Item2.x].list2[(int)pointIndex[i].Item2.y + 1].pos, pointIndex[i + 1].Item1, 1.5f));
+                    roadCrossings.Add(pointIndex[i + 1].Item1);
+                    roadCrossings.Add(pointIndex[i].Item1);
+                    anglePosIndex.Add((0, Vector3.LerpUnclamped(kvp.Value[(int)pointIndex[i].Item2.x].list1[(int)pointIndex[i].Item2.y + 1].pos, pointIndex[i].Item1, 1.5f), (int)pointIndex[i].Item2.x));
+                    anglePosIndex.Add((0, Vector3.LerpUnclamped(kvp.Value[(int)pointIndex[i].Item2.x].list2[(int)pointIndex[i].Item2.y + 1].pos, pointIndex[i + 1].Item1, 1.5f), (int)pointIndex[i].Item2.x));
+                }
+                else
+                {
+                    roadCrossings.Add(pointIndex[i].Item1);
+                    roadCrossings.Add(pointIndex[i + 1].Item1);
+                    roadCrossings.Add(Vector3.LerpUnclamped(kvp.Value[(int)pointIndex[i].Item2.x].list2[(int)pointIndex[i].Item2.y - 1].pos, pointIndex[i + 1].Item1, 1.5f));
+                    roadCrossings.Add(Vector3.LerpUnclamped(kvp.Value[(int)pointIndex[i].Item2.x].list1[(int)pointIndex[i].Item2.y - 1].pos, pointIndex[i].Item1, 1.5f));
+                    anglePosIndex.Add((0, Vector3.LerpUnclamped(kvp.Value[(int)pointIndex[i].Item2.x].list2[(int)pointIndex[i].Item2.y - 1].pos, pointIndex[i + 1].Item1, 1.5f), (int)pointIndex[i].Item2.x));
+                    anglePosIndex.Add((0, Vector3.LerpUnclamped(kvp.Value[(int)pointIndex[i].Item2.x].list1[(int)pointIndex[i].Item2.y - 1].pos, pointIndex[i].Item1, 1.5f), (int)pointIndex[i].Item2.x));
                 }
                 crossings.Add(pointIndex[i].Item2, roadCrossings);
             }
@@ -1293,8 +1480,8 @@ public class RoadPlacement : MonoBehaviour
                 Vector3 p1 = road.points[p].pos + (right * roadWitdh);
                 Vector3 p2 = road.points[p].pos + (-right * roadWitdh);
 
-                road.list1.Add(p1);
-                road.list2.Add(p2);
+                road.list1.Add(new RoadNode(p1, road.points[p].country));
+                road.list2.Add(new RoadNode(p2, road.points[p].country));
             }
             else
             {
@@ -1302,8 +1489,8 @@ public class RoadPlacement : MonoBehaviour
                 Vector3 p1 = road.points[p].pos + (right * roadWitdh);
                 Vector3 p2 = road.points[p].pos + (-right * roadWitdh);
 
-                road.list1.Add(p2);
-                road.list2.Add(p1);
+                road.list1.Add(new RoadNode(p2, road.points[p].country));
+                road.list2.Add(new RoadNode(p1, road.points[p].country));
             }
         }
 
@@ -1315,10 +1502,10 @@ public class RoadPlacement : MonoBehaviour
 
         for (int p = 1; p < road.list1.Count; p++)
         {
-            Vector3 p1 = road.list1[p - 1];
-            Vector3 p2 = road.list2[p - 1];
-            Vector3 p3 = road.list1[p];
-            Vector3 p4 = road.list2[p];
+            Vector3 p1 = road.list1[p - 1].pos;
+            Vector3 p2 = road.list2[p - 1].pos;
+            Vector3 p3 = road.list1[p].pos;
+            Vector3 p4 = road.list2[p].pos;
 
             offset = 4 * (p - 1);
 
@@ -1340,7 +1527,7 @@ public class RoadPlacement : MonoBehaviour
         mesh.RecalculateNormals();
         tempMesh.mesh = mesh;
     }
-    void BuildBridges()
+    public void BuildBridges()
     {
         Mesh mesh = new Mesh();
         List<Vector3> verts = new List<Vector3>();
@@ -1482,8 +1669,8 @@ public class RoadPlacement : MonoBehaviour
                 Gizmos.color = colors[i % colors.Count];
                 for (int j = 0; j < roads[i].list1.Count; j++)
                 {
-                    Gizmos.DrawSphere(roads[i].list1[j], 0.005f);
-                    Gizmos.DrawSphere(roads[i].list2[j], 0.005f);
+                    Gizmos.DrawSphere(roads[i].list1[j].pos, 0.005f);
+                    Gizmos.DrawSphere(roads[i].list2[j].pos, 0.005f);
                 }
             }
         }
@@ -1495,9 +1682,9 @@ public class RoadPlacement : MonoBehaviour
                 for (int j = 0; j < roads[i].list1.Count; j++)
                 {
                     Gizmos.color = Color.white;
-                    Gizmos.DrawSphere(roads[i].list1[j], 0.005f);
+                    Gizmos.DrawSphere(roads[i].list1[j].pos, 0.005f);
                     Gizmos.color = Color.blue;
-                    Gizmos.DrawSphere(roads[i].list2[j], 0.005f);
+                    Gizmos.DrawSphere(roads[i].list2[j].pos, 0.005f);
                 }
             }
         }
@@ -1505,3 +1692,5 @@ public class RoadPlacement : MonoBehaviour
 
 }
 public enum Drawmode { None, Points, Curves, Edges, EdgesLineColor };
+
+public enum RoadDisplayMode { OnlyCountysRoads, AllRoads };

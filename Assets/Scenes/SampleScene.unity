@@ -661,6 +661,10 @@ PrefabInstance:
       propertyPath: m_Materials.Array.data[1]
       value: 
       objectReference: {fileID: 2100000, guid: 04edef0cd87316849930b1a8c5d457de, type: 2}
+    - target: {fileID: 4911802426350179664, guid: cbfd1f7d372ce6d4da330eb46584fd21, type: 3}
+      propertyPath: m_Name
+      value: Antarcita1
+      objectReference: {fileID: 0}
     - target: {fileID: 6255912095002478994, guid: cbfd1f7d372ce6d4da330eb46584fd21, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -1291,7 +1295,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1010271844}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fec61fec29d1c0048b44e13c55fb1853, type: 3}
   m_Name: 
@@ -1870,12 +1874,13 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1328958703}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 66b21eef2de652e44a1294d6f3171867, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   drawMode: 1
+  displayMode: 0
   camera: {fileID: 963194227}
   distBetweenPoints: 0.03
   roadWitdh: 0.01
@@ -1901,6 +1906,7 @@ MonoBehaviour:
   roadMask:
     serializedVersion: 2
     m_Bits: 256
+  manager: {fileID: 1987971794}
   snapingDist: 0.03
   starter: {fileID: 1957739070}
   canPlaceMat: {fileID: 2100000, guid: b21913fc102d2d848afcf709b3ce5262, type: 2}
@@ -2573,6 +2579,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   playerCount: 6
   hiddenMaterial: {fileID: 2100000, guid: 2fd20b43618cebd4eb563d1b7e91db70, type: 2}
+  roadPlacement: {fileID: 1328958708}
   players: []
   counties:
   - name: Alaska
@@ -2820,6 +2827,10 @@ MonoBehaviour:
     ironResources: 0.5
     coalResources: 0.5
     uraniumResources: 0.5
+  currentPlayer:
+    name: 
+    money: 0
+    countys: []
 --- !u!1 &2017673564 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 3424467384198481182, guid: cbfd1f7d372ce6d4da330eb46584fd21, type: 3}
