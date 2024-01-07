@@ -1295,13 +1295,13 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1010271844}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fec61fec29d1c0048b44e13c55fb1853, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   cameraTransform: {fileID: 963194228}
-  placeObject: {fileID: 11400000, guid: 08ecf6bd92a20c040bc8e482c0b2ce90, type: 2}
+  placeObject: {fileID: 11400000, guid: 69e2f24128654f740afd8847ca1a29e0, type: 2}
   radiusDisplayer: {fileID: 1948683958}
   hand: {fileID: 1200226244}
   mask:
@@ -1415,7 +1415,7 @@ MonoBehaviour:
   m_MinValue: 0
   m_MaxValue: 90
   m_WholeNumbers: 0
-  m_Value: 48.1
+  m_Value: 90
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls: []
@@ -1874,7 +1874,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1328958703}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 66b21eef2de652e44a1294d6f3171867, type: 3}
   m_Name: 
