@@ -708,7 +708,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 354711830}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1010271847}
+        m_TargetAssemblyTypeName: Placement, Assembly-CSharp
+        m_MethodName: setPlaceObject
+        m_Mode: 2
+        m_Arguments:
+          m_ObjectArgument: {fileID: 11400000, guid: 13d3ee75f962c234ea1653a2c514cdbb, type: 2}
+          m_ObjectArgumentAssemblyTypeName: Building, Assembly-CSharp
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!1 &381387649 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 597201626679494569, guid: cbfd1f7d372ce6d4da330eb46584fd21, type: 3}
@@ -745,6 +757,7 @@ Transform:
   m_Children:
   - {fileID: 1010271845}
   - {fileID: 1328958706}
+  - {fileID: 883060790}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &460595267 stripped
@@ -832,6 +845,53 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 496836618}
   m_CullTransparentMesh: 1
+--- !u!1 &637090156
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 637090157}
+  - component: {fileID: 637090158}
+  m_Layer: 0
+  m_Name: TurnManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &637090157
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 637090156}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 1112.9436, y: 267.60645, z: 7.345662}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1987971793}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &637090158
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 637090156}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e200304e1d08095489b99aae465d0025, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  gameManager: {fileID: 1987971794}
+  hiddenMaterial: {fileID: 2100000, guid: 2fd20b43618cebd4eb563d1b7e91db70, type: 2}
+  playerIndex: 0
 --- !u!1 &663975214 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 4911802426350179664, guid: cbfd1f7d372ce6d4da330eb46584fd21, type: 3}
@@ -1138,7 +1198,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 788661846}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1010271847}
+        m_TargetAssemblyTypeName: Placement, Assembly-CSharp
+        m_MethodName: setPlaceObject
+        m_Mode: 2
+        m_Arguments:
+          m_ObjectArgument: {fileID: 11400000, guid: 63f7d3371cca01b46bfd7d58e9c15be8, type: 2}
+          m_ObjectArgumentAssemblyTypeName: Building, Assembly-CSharp
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!1 &874080107
 GameObject:
   m_ObjectHideFlags: 0
@@ -1245,6 +1317,56 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 874080107}
   m_Mesh: {fileID: 0}
+--- !u!1 &883060789
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 883060790}
+  - component: {fileID: 883060791}
+  m_Layer: 0
+  m_Name: CameraMovement
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &883060790
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 883060789}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 1112.3687, y: 268.23672, z: 7.8037453}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 456701166}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &883060791
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 883060789}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: adb2b24147cd4f84e99d46f9899df188, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  target: {fileID: 491855515}
+  scrollSensitivity: 3
+  myCamera: {fileID: 963194227}
+  closestPos: 1.5
+  furthestPos: 5
+  selectedMat: {fileID: 2100000, guid: 7a48fc5361e12284fad473c3c9e5ee9f, type: 2}
 --- !u!1 &892165808
 GameObject:
   m_ObjectHideFlags: 0
@@ -1635,10 +1757,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1010271845}
-  - component: {fileID: 1010271846}
   - component: {fileID: 1010271847}
   m_Layer: 0
-  m_Name: InputController
+  m_Name: PlacingController
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1662,24 +1783,6 @@ Transform:
   - {fileID: 1948683961}
   m_Father: {fileID: 456701166}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1010271846
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1010271844}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: adb2b24147cd4f84e99d46f9899df188, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  target: {fileID: 491855515}
-  scrollSensitivity: 3
-  myCamera: {fileID: 963194227}
-  closestPos: 1.5
-  furthestPos: 5
-  selectedMat: {fileID: 2100000, guid: 7a48fc5361e12284fad473c3c9e5ee9f, type: 2}
 --- !u!114 &1010271847
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1692,8 +1795,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fec61fec29d1c0048b44e13c55fb1853, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  manager: {fileID: 1987971794}
   cameraTransform: {fileID: 963194228}
-  placeObject: {fileID: 11400000, guid: 69e2f24128654f740afd8847ca1a29e0, type: 2}
+  placeObject: {fileID: 0}
   radiusDisplayer: {fileID: 1948683958}
   hand: {fileID: 1200226244}
   mask:
@@ -1836,7 +1940,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1020320151}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1010271847}
+        m_TargetAssemblyTypeName: Placement, Assembly-CSharp
+        m_MethodName: setPlaceObject
+        m_Mode: 2
+        m_Arguments:
+          m_ObjectArgument: {fileID: 11400000, guid: 60f724ca562be11428bdcf31ec95e7c9, type: 2}
+          m_ObjectArgumentAssemblyTypeName: Building, Assembly-CSharp
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!1 &1113650076 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 8108858762060770533, guid: cbfd1f7d372ce6d4da330eb46584fd21, type: 3}
@@ -1961,7 +2077,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1115792171}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1010271847}
+        m_TargetAssemblyTypeName: Placement, Assembly-CSharp
+        m_MethodName: setPlaceObject
+        m_Mode: 2
+        m_Arguments:
+          m_ObjectArgument: {fileID: 11400000, guid: 69e2f24128654f740afd8847ca1a29e0, type: 2}
+          m_ObjectArgumentAssemblyTypeName: Building, Assembly-CSharp
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!1 &1169156505
 GameObject:
   m_ObjectHideFlags: 0
@@ -2867,8 +2995,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1987971794}
-        m_TargetAssemblyTypeName: GameManager, Assembly-CSharp
+      - m_Target: {fileID: 637090158}
+        m_TargetAssemblyTypeName: TurnManager, Assembly-CSharp
         m_MethodName: nextPlayer
         m_Mode: 1
         m_Arguments:
@@ -3222,7 +3350,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1927193268}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1010271847}
+        m_TargetAssemblyTypeName: Placement, Assembly-CSharp
+        m_MethodName: setPlaceObject
+        m_Mode: 2
+        m_Arguments:
+          m_ObjectArgument: {fileID: 11400000, guid: b169bd418278e8e4a80c2553d08e53bc, type: 2}
+          m_ObjectArgumentAssemblyTypeName: Building, Assembly-CSharp
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!1 &1939308429
 GameObject:
   m_ObjectHideFlags: 0
@@ -3342,7 +3482,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1939308431}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1010271847}
+        m_TargetAssemblyTypeName: Placement, Assembly-CSharp
+        m_MethodName: setPlaceObject
+        m_Mode: 2
+        m_Arguments:
+          m_ObjectArgument: {fileID: 11400000, guid: 82bcf07f7cf01c942a1910227d6d124f, type: 2}
+          m_ObjectArgumentAssemblyTypeName: Building, Assembly-CSharp
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!1 &1948683958
 GameObject:
   m_ObjectHideFlags: 0
@@ -3628,7 +3780,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1960548481}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1010271847}
+        m_TargetAssemblyTypeName: Placement, Assembly-CSharp
+        m_MethodName: setPlaceObject
+        m_Mode: 2
+        m_Arguments:
+          m_ObjectArgument: {fileID: 11400000, guid: 08ecf6bd92a20c040bc8e482c0b2ce90, type: 2}
+          m_ObjectArgumentAssemblyTypeName: Building, Assembly-CSharp
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!1 &1987971792
 GameObject:
   m_ObjectHideFlags: 0
@@ -3658,7 +3822,8 @@ Transform:
   m_LocalPosition: {x: -0.553765, y: 1.0093772, z: -0.10049987}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 637090157}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1987971794
@@ -3674,8 +3839,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playerCount: 6
-  hiddenMaterial: {fileID: 2100000, guid: 2fd20b43618cebd4eb563d1b7e91db70, type: 2}
   roadPlacement: {fileID: 1328958708}
+  turnManager: {fileID: 637090158}
+  currentPlayer:
+    name: 
+    money: 0
+    countys: []
   players: []
   counties:
   - name: Alaska
@@ -3923,10 +4092,6 @@ MonoBehaviour:
     ironResources: 0.5
     coalResources: 0.5
     uraniumResources: 0.5
-  currentPlayer:
-    name: 
-    money: 0
-    countys: []
 --- !u!1 &1994737052
 GameObject:
   m_ObjectHideFlags: 0
@@ -4046,7 +4211,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1994737054}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1010271847}
+        m_TargetAssemblyTypeName: Placement, Assembly-CSharp
+        m_MethodName: setPlaceObject
+        m_Mode: 2
+        m_Arguments:
+          m_ObjectArgument: {fileID: 11400000, guid: d896ab84cd183ba4c895667cfddacfe4, type: 2}
+          m_ObjectArgumentAssemblyTypeName: Building, Assembly-CSharp
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!1 &2017673564 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 3424467384198481182, guid: cbfd1f7d372ce6d4da330eb46584fd21, type: 3}

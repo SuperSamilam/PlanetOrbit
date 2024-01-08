@@ -1,7 +1,9 @@
+using System.Net.Http.Headers;
 using UnityEngine;
 
 public class Placement : MonoBehaviour
 {
+    [SerializeField] GameManager manager;
     [SerializeField] Transform cameraTransform;
     [SerializeField] Building placeObject;
     [SerializeField] GameObject radiusDisplayer;
@@ -19,29 +21,31 @@ public class Placement : MonoBehaviour
     RaycastHit hit;
     bool canBuild = false;
 
-    void Start()
+    public void setPlaceObject(Building building)
     {
+        placeObject = building;
         setUpHand();
     }
+
     //assign the gameobject to place
     void setUpHand()
     {
         if (hand.transform.childCount > 0)
         {
-            Destroy(hand.transform.GetChild(0));
+            Destroy(hand.transform.GetChild(0).gameObject);
         }
 
         radiusDisplayer.transform.localScale = new Vector3(placeObject.connectionRadius, radiusDisplayer.transform.localScale.y, placeObject.connectionRadius);
         prefab = Instantiate(placeObject.gameObject, hand.transform.position, Quaternion.identity);
         prefab.transform.parent = hand.transform;
-        //handOutline.transform.localScale = 
     }
     void Update()
     {
+        if (placeObject == null)
+            return;
         ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         if (Physics.Raycast(ray, out hit, Mathf.Infinity, ~mask))
         {
-            //set the object and the current position and asign teh right mat
             hand.transform.position = hit.point;
             prefab.transform.up = hit.normal;
             radiusDisplayer.transform.position = hit.point;
@@ -79,6 +83,21 @@ public class Placement : MonoBehaviour
             canBuild = true;
         }
 
+        bool found = false;
+        for (int i = 0; i < manager.currentPlayer.countys.Count; i++)
+        {
+            if (manager.currentPlayer.countys[i].name == hit.transform.gameObject.name)
+            {
+                found = true;
+                break;
+            }
+        }
+        if (!found)
+        {
+            canBuild = false;
+            prefab.transform.GetComponent<MeshRenderer>().material = cantPlaceMat;
+        }
+
         //change the rotation
         if (Input.GetKey(KeyCode.R))
         {
@@ -90,6 +109,7 @@ public class Placement : MonoBehaviour
         {
             GameObject obj = Instantiate(placeObject.gameObject, prefab.transform.position, prefab.transform.rotation);
             obj.layer = LayerMask.NameToLayer("Building");
+            obj.transform.parent = hit.transform;
         }
 
     }
