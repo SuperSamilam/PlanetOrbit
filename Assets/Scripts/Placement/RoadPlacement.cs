@@ -87,8 +87,26 @@ public class RoadPlacement : MonoBehaviour
         RaycastHit hit;
         if (Physics.Raycast(ray, out hit, 10f, ~roadMask))
         {
-            mousePos = hit.point;
+            if (EventSystem.current.IsPointerOverGameObject())
+                return;
+
             canPlace = true;
+
+            bool found = false;
+            for (int i = 0; i < manager.currentPlayer.countys.Count; i++)
+            {
+                if (manager.currentPlayer.countys[i].name == hit.transform.gameObject.name)
+                {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found)
+            {
+                canPlace = false;
+            }
+
+            mousePos = hit.point;
 
             //check for snaping
             bool shouldSnap = false;
@@ -97,6 +115,7 @@ public class RoadPlacement : MonoBehaviour
             {
                 for (int p = 0; p < roads[r].points.Count; p++)
                 {
+
                     if (Vector3.Distance(roads[r].points[p].pos, hit.point) < internalSnapinDist)
                     {
                         internalSnapinDist = Vector3.Distance(roads[r].points[p].pos, hit.point);
@@ -143,7 +162,7 @@ public class RoadPlacement : MonoBehaviour
                 starter.transform.position = mousePos;
             }
 
-            if (Input.GetMouseButtonDown(0) && !haveClicked && hit.transform.gameObject.tag == "Country")
+            if (Input.GetMouseButtonDown(0) && !haveClicked && hit.transform.gameObject.tag == "Country" && canPlace)
             {
                 firstPos = mousePos;
                 haveClicked = true;

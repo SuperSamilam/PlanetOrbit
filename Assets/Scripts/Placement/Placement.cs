@@ -1,5 +1,6 @@
 using System.Net.Http.Headers;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 public class Placement : MonoBehaviour
 {
@@ -41,11 +42,14 @@ public class Placement : MonoBehaviour
     }
     void Update()
     {
+         if (EventSystem.current.IsPointerOverGameObject())
+                return;
         if (placeObject == null)
             return;
         ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         if (Physics.Raycast(ray, out hit, Mathf.Infinity, ~mask))
         {
+            
             hand.transform.position = hit.point;
             prefab.transform.up = hit.normal;
             radiusDisplayer.transform.position = hit.point;

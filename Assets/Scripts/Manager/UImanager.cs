@@ -25,9 +25,24 @@ public class UImanager : MonoBehaviour
         currentActive.SetActive(true);
     }
 
+    public void ActivateOrDeactivate(GameObject obj)
+    {
+        if (obj.activeSelf)
+        {
+            obj.SetActive(false);
+            ResetClick();
+        }
+        else
+            obj.SetActive(true);
+    }
+
 
     void ResetClick()
     {
-
+        if (currentActive == null)
+            return; 
+            
+        currentActive.SetActive(false);
+        currentActive = null;
     }
 }
