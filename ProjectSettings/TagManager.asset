@@ -7,6 +7,7 @@ TagManager:
   - Country
   - Water
   - Road
+  - HoverButton
   layers:
   - Default
   - TransparentFX

@@ -1,17 +1,22 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class TurnManager : MonoBehaviour
 {
     public GameManager gameManager;
     List<Material> countryOrinalMat = new List<Material>();
     [SerializeField] Material hiddenMaterial;
+    [SerializeField] Slider slider;
     public int playerIndex;
+    public float timer;
+    public float maxTime = 90f;
 
 
     void Start()
     {
+        slider.maxValue = maxTime;
         List<int> tempCountrys = new List<int>();
         for (int i = 0; i < gameManager.counties.Count; i++)
         {
@@ -33,6 +38,19 @@ public class TurnManager : MonoBehaviour
         }
         nextPlayer();
     }
+
+    void Update()
+    {
+        if (timer < maxTime)
+        {
+            timer += Time.deltaTime;
+            slider.value = timer;
+        }
+        else
+        {
+            nextPlayer();
+        }
+    }
     public void nextPlayer()
     {
         playerIndex++;
@@ -43,6 +61,7 @@ public class TurnManager : MonoBehaviour
         Debug.Log(gameManager.currentPlayer.name);
         gameManager.roadPlacement.BuildMesh(gameManager.currentPlayer.countys);
         gameManager.roadPlacement.BuildBridges();
+        timer = 0;
         hideCountys();
     }
 
@@ -53,27 +72,23 @@ public class TurnManager : MonoBehaviour
             if (gameManager.currentPlayer.countys.Contains(gameManager.counties[i]))
             {
                 gameManager.counties[i].obj.GetComponent<MeshRenderer>().material = countryOrinalMat[i];
-                if (gameManager.counties[i].obj.transform.childCount == 0)
-                    continue;
-                gameManager.counties[i].obj.transform.GetChild(0).gameObject.GetComponent<MeshRenderer>().material = countryOrinalMat[i];
-                if (gameManager.counties[i].obj.transform.childCount == 1)
-                    continue;
-                for (int j = 1; j < gameManager.counties[i].obj.transform.childCount; j++)
+                for (int j = 0; j < gameManager.counties[i].obj.transform.childCount; j++)
                 {
-                    gameManager.counties[i].obj.transform.GetChild(j).gameObject.SetActive(true);
+                    if (gameManager.counties[i].obj.transform.GetChild(j).gameObject.name.Contains("Edge"))
+                        gameManager.counties[i].obj.transform.GetChild(j).GetComponent<MeshRenderer>().material = countryOrinalMat[i];
+                    else
+                        gameManager.counties[i].obj.transform.GetChild(j).gameObject.SetActive(true);
                 }
-
             }
             else
             {
-                if (gameManager.counties[i].obj.transform.childCount == 0)
-                    continue;
                 gameManager.counties[i].obj.GetComponent<MeshRenderer>().material = hiddenMaterial;
-                if (gameManager.counties[i].obj.transform.childCount == 1)
-                    continue;
-                for (int j = 1; j < gameManager.counties[i].obj.transform.childCount; j++)
+                for (int j = 0; j < gameManager.counties[i].obj.transform.childCount; j++)
                 {
-                    gameManager.counties[i].obj.transform.GetChild(j).gameObject.SetActive(false);
+                    if (gameManager.counties[i].obj.transform.GetChild(j).gameObject.name.Contains("Edge"))
+                        gameManager.counties[i].obj.transform.GetChild(j).GetComponent<MeshRenderer>().material = hiddenMaterial;
+                    else
+                        gameManager.counties[i].obj.transform.GetChild(j).gameObject.SetActive(false);
                 }
             }
         }
